@@ -1,0 +1,15 @@
+Package: r64
+Type: Package
+Title: 6502 Assembler 
+Version: 0.1.0
+Author: mikefc
+Maintainer: mikefc <mikefc@coolbutuseless.com>
+Description: A simple 6502 assembler.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Depends:
+    R (>= 2.10)
+Imports:
+  purrr
