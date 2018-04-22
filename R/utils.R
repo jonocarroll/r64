@@ -82,5 +82,6 @@ s2i <- function(string) {
 #' @export
 #-----------------------------------------------------------------------------
 address_to_bytes <- function(address) {
+  address <- as.integer(address)
   c(address %% 256L, address %/% 256L)
 }
