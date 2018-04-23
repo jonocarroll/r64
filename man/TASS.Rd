@@ -3,13 +3,13 @@
 \docType{data}
 \name{TASS}
 \alias{TASS}
-\title{Class wrapping the 64TASS assembler for easier testing of my assembler}
+\title{Class wrapping the 64TASS assembler for easier testing of the R64 assembler}
 \format{An object of class \code{R6ClassGenerator} of length 24.}
 \usage{
 TASS
 }
 \description{
-Class wrapping the 64TASS assembler for easier testing of my assembler
+Class wrapping the 64TASS assembler for easier testing of the R64 assembler
 }
 \examples{
 \dontrun{
@@ -20,5 +20,6 @@ tass$get_prg()
 tass$get_asm()
 tass$compile_and_run()
 }
+
 }
 \keyword{datasets}

@@ -1,0 +1,66 @@
+---
+title: "Hello World"
+author: "mikefc@coolbutuseless.com"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+suppressPackageStartupMessages({
+  library(r64)  
+})
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r}
+library(r64)
+
+asm <- '
+*=$0801
+  .byte $0c, $08, $0a, $00, $9e, $20
+  .byte $32, $30, $38, $30, $00, $00
+  .byte $00
+
+*=$0820
+      ldx #$00
+loop  lda message,x
+      and #$3f
+      sta $0400,x
+      inx
+      cpx #$0c
+      bne loop
+
+      rts
+
+message
+    .text "Hello World!"
+'
+
+
+line_tokens <- r64::create_line_tokens(asm)
+
+prg_df <- r64::create_prg_df(line_tokens)
+prg_df <- r64::process_xrefs(prg_df)
+prg_df <- r64::process_zero_padding(prg_df)
+
+r64::extract_prg_bytes(prg_df)
+```
+
+
+```{r}
+tass <- r64::TASS$new(asm = asm)
+tass$compile()
+tass$get_prg()
+
+identical(r64::extract_prg_bytes(prg_df), tass$get_prg())
+```
+

@@ -123,8 +123,20 @@ opcodes %<>% mutate(
 readr::write_delim(opcodes, "opcodes.tsv", delim="\t")
 
 devtools::use_data(opcodes, overwrite=TRUE)
-
 ```
+
+
+```{r}
+ops      <- sort(unique(opcodes$op)) 
+ops      <- stringr::str_sub(ops, end=3)
+lowerops <- tolower(ops)
+
+opcode_pattern <- paste0("\\b(", paste(c(ops, lowerops), collapse="|"), ")\\b")
+
+opcode_pattern
+# devtools::use_data(opcode_pattern, overwrite=TRUE)
+```
+
 
 
 

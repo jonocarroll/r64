@@ -1,13 +1,8 @@
 
 
-suppressPackageStartupMessages({
-  library(glue)
-  library(R6)
-})
-
 
 #-----------------------------------------------------------------------------
-#' Class wrapping the 64TASS assembler for easier testing of my assembler
+#' Class wrapping the 64TASS assembler for easier testing of the R64 assembler
 #'
 #' @examples
 #' \dontrun{
@@ -18,6 +13,10 @@ suppressPackageStartupMessages({
 #' tass$get_asm()
 #' tass$compile_and_run()
 #' }
+#'
+#' @importFrom glue glue
+#' @importFrom R6 R6Class
+#' @export
 #-----------------------------------------------------------------------------
 TASS <- R6::R6Class(
   "TASS",
@@ -30,9 +29,25 @@ TASS <- R6::R6Class(
     compile_result  = NULL,
     x64_bin         = NULL,
 
-    initialize = function(asm_filename, tass_bin = "./bin/64tass", x64_bin = '/usr/local/opt/vice/x64.app/Contents/MacOS/x64') {
-      self$asm_filename <- asm_filename
-      self$prg_filename <- paste0(tools::file_path_sans_ext(asm_filename), ".prg")
+
+    #-------------------------------------------------------------------------
+    # Can specify either an asm_filename, or pass in asm directly, which
+    # will be saved to a temp file for compilation
+    #-------------------------------------------------------------------------
+    initialize = function(asm_filename=NULL, asm=NULL, prg_filename=NULL, tass_bin = "~/bin/64tass", x64_bin = '/usr/local/opt/vice/x64.app/Contents/MacOS/x64') {
+
+      if (!is.null(asm)) {
+        self$asm_filename <- '/tmp/test.asm'
+        writeLines(asm, self$asm_filename)
+      } else {
+        self$asm_filename <- asm_filename
+      }
+
+      if (is.null(prg_filename)) {
+        self$prg_filename <- paste0(tools::file_path_sans_ext(asm_filename), ".prg")
+      } else {
+        self$prg_filename <- prg_filename
+      }
 
       self$tass_bin <- tass_bin
       self$x64_bin  <- x64_bin
@@ -42,11 +57,14 @@ TASS <- R6::R6Class(
     },
 
 
+    #-----------------------------------------------------------------------------
+    # Compile asm with 64TASS
+    #-----------------------------------------------------------------------------
     compile = function() {
-      # /usr/local/bin/64tass -C -a -i SOURCEFILE -o OUTFILE
-      # open /Applications/Vice64/x64.app OUTFILE
+
+      # remove PRG file if it already exists
       unlink(self$prg_filename)
-      command = glue("{self$tass_bin} -C -a -i {self$asm_filename} -o {self$prg_filename}")
+      command             <- glue::glue("{self$tass_bin} -C -a -i {self$asm_filename} -o {self$prg_filename}")
       self$compile_result <- system(command, intern = TRUE)
 
       short_result <- grep("messages:", tass$compile_result, value=TRUE)
@@ -55,37 +73,57 @@ TASS <- R6::R6Class(
       invisible(self)
     },
 
-    run = function() {
-      command = glue("{self$x64_bin} {self$prg_filename}")
-      system(command)
+    #-----------------------------------------------------------------------------
+    # Run program in VICE emulator
+    #-----------------------------------------------------------------------------
+    run = function(wait=FALSE, intern=FALSE) {
+      command = glue::glue("{self$x64_bin} {self$prg_filename}")
+      system(command, wait = wait, intern=intern)
 
       invisible(self)
     },
 
+    #-----------------------------------------------------------------------------
+    # Dump the ASM to screen
+    #-----------------------------------------------------------------------------
     dump_asm = function() {
       cat(self$get_asm(), "\n")
       invisible(self)
     },
 
+    #-----------------------------------------------------------------------------
+    # get a single string representing the entire ASM
+    #-----------------------------------------------------------------------------
     get_asm = function() {
       paste(readLines(self$asm_filename), collapse="\n")
     },
 
+    #-----------------------------------------------------------------------------
+    # Get a raw vector of bytes representing the PRG
+    #-----------------------------------------------------------------------------
     get_prg = function() {
       readBin(self$prg_filename, what='raw', n=file.info(self$prg_filename)$size)
     },
 
-    compile_and_run = function() {
+    #-----------------------------------------------------------------------------
+    # Compile and then run
+    #-----------------------------------------------------------------------------
+    compile_and_run = function(wait=FALSE, intern=FALSE) {
       self$compile()
-      self$run()
+      self$run(wait=wait, intern=intern)
     }
 
   )
 )
 
 
+
+
+#-------------------------------------------------------------------------------
+# Testing
+#-------------------------------------------------------------------------------
 if (FALSE) {
-  tass <- TASS$new("./asm/border.asm")
+  tass <- Tass$new("./asm/border0.asm")
   tass$dump_asm()
   tass$compile()
   tass$get_prg()

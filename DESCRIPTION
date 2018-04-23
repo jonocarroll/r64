@@ -12,7 +12,15 @@ RoxygenNote: 6.0.1
 Depends:
     R (>= 2.10)
 Imports:
+  magrittr,
+  dplyr,
+  tidyr,
   purrr,
   glue,
-  R6
-Suggests: testthat
+  R6,
+  minilexer,
+  rlang
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
