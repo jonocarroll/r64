@@ -47,6 +47,9 @@ h2i <- function(...) {
 #' @export
 #-----------------------------------------------------------------------------
 s2i <- function(string) {
+  stopifnot(is.numeric(string) || is.character(string))
+  stopifnot(length(string) == 1)
+  stopifnot(!is.na(string))
 
   # Remove quotes
   string <- gsub('\\"', '', string)
