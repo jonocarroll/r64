@@ -1,11 +1,8 @@
 
 
-`r64` - a c64/6502 assembler in R
-------------------------------------------------------------------------------
-
-
 ```{r setup, include = FALSE}
 suppressPackageStartupMessages({
+  library(dplyr)
   library(r64)  
 })
 
@@ -13,10 +10,66 @@ knitr::opts_chunk$set(echo=TRUE)
 ```
 
 
+
+
+`r64` - a c64/6502 assembler in R
+==============================================================================
+
+
+Rationale
+------------------------------------------------------------------------------
+
+* Who *doesn't* want a compiler for a *1 MHz* 8-bit computer?
+* Writing my own 6502 assembler in R will allow for preparing/calculating 
+  data in R and then incorporating directly into the assembly code.
+
+
+Features
+------------------------------------------------------------------------------
+
+General features
+
+* Basic syntax only. Similar to TASS64 syntax.
+* Settable program counter
+    * e.g. `* = $0801`
+* Defined variables
+    * e.g. `border = $d020`
+* Low/High byte extraction from symol (similar to TASS)
+    * e.g. `lda #<routine` will store the low byte of the address of symbol `routine` in the `A` register
+
+For integration with R
+
+* include an `R` string as text using the `.rtext` directive
+* include an `R` integer vector as bytes using the `.rbytes` directive
+
+Limitations
+------------------------------------------------------------------------------
+
+This is the very definition of a *toy assembler*.  There is enough support for
+the things I want to do, but it is lacking a lot of niceties.
+
+Things which are **NOT** included, but could be implemented when the need arises:
+
+* Direct computation on symbols
+    * e.g. `lda message+80`
+* Computation/manipulation of the program counter 
+    * e.g. `sta *-1`
+* Support for decimal and binary literals.
+    * e.g. `lda #127` or `lda #b01111111`
+
+
+Installation
+------------------------------------------------------------------------------
+
+`r64` depnds on a lot of tidyverse packages as well as the [minilexer](https://bitbucket.org/coolbutuseless/minilexer)
+package (for splitting the c64 asm code into tokens).
+
 ```{r eval=FALSE}
 devtools::install_bitbucket('coolbutuseless/minilexer') # for lexing the 6502 assembly into tokens
 devtools::install_bitbucket('coolbutuseless/r64')
 ```
+
+
 
 
 A simple 6502 program 
@@ -28,20 +81,17 @@ write `Hello #rstats!` at the top
 ```{r}
 asm <- '
 *=$0801
-  .byte $0c, $08, $0a, $00, $9e, $20
+  .byte $0c, $08, $0a, $00, $9e, $20  ; 10 SYS 2080
   .byte $32, $30, $38, $30, $00, $00
   .byte $00
 
 *=$0820
-      lda #$93   ; Clear the screen
-      jsr $ffd2
-
-      lda #$0e   ; set hi/lo case
+      lda #$93        ; Clear the screen
       jsr $ffd2
 
       ldx #$00        ; initialise the offset pointer into our message
-loop  lda message,x   ; load a caracter and write it to screen 
-      and #$3f        ; Doing manually rather than with kernal $ffd2
+loop  lda message,x   ; load a character and write it to screen 
+      and #$3f        ; Manually place chars on screen
       sta $0400,x
       inx
       cpx #$0e
@@ -71,7 +121,7 @@ TASS64 is a well known 6502 assembler.  Here i will use it to compile the same c
 compare the output. It should be identical. I'm using an [R6](https://cran.r-project.org/package=R6)
 wrapper around the command line executable to just make things a bit easier.
 
-```{r eval=FALSE}
+```{r}
 tass <- r64::TASS$new(asm = asm)$compile()
 
 identical(r64::extract_prg_bytes(prg_df), tass$get_prg())
@@ -90,11 +140,49 @@ system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", prg_filename), wa
 ![helloworld output](img/hello.gif)
 
 
+Breakdown of assembly process
+------------------------------------------------------------------------------
+
+The compiler makes a few passes through the data to resolve symbol values.
+
+The `r64::compile()` function is just a wrapper which calls the following 4 functions
+
+1. `line_tokens <- r64::create_line_tokens(asm)`
+    * For each line in the input break it into tokens.
+    * Filter any rows that contain no instructions
+2. `prg_df <- r64::create_prg_df(line_tokens)`
+    * Create a data.frame from `line_tokens`
+    * This is the key data structure for the compilation process
+    * The compilation process is just a matter of manipulating this data.frame and merging with information about the instructions
+3. `prg_df <- r64::process_xrefs(prg_df)`
+    * Resolve labels to their actual addresses
+    * Replace any defined variables with their values
+4. `prg_df <- r64::process_zero_padding(prg_df)`
+    * If there are gaps between blocks of code, insert zero bytes
+
+An example of the final form of the `prg_df` data.frame is show below.  The actual contents of the c64 `prg` file
+is just the sequence of values in the `bytes` column. 
+
 ```{r}
-# r64::compile() runs the following steps:
-# line_tokens <- r64::create_line_tokens(asm)
-# prg_df      <- r64::create_prg_df(line_tokens)
-# prg_df      <- r64::process_xrefs(prg_df)
-# prg_df      <- r64::process_zero_padding(prg_df)
+prg_df %>%
+  select(addr, label, xref, line, opcommand, op, ophex, nbytes, bytes, hexbytes) %>%
+  knitr::kable()
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
