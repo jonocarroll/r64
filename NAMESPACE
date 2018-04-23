@@ -2,6 +2,7 @@
 
 export(TASS)
 export(address_to_bytes)
+export(compile)
 export(create_line_tokens)
 export(create_prg_df)
 export(extract_prg_bytes)

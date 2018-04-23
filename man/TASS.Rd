@@ -9,7 +9,9 @@
 TASS
 }
 \description{
-Class wrapping the 64TASS assembler for easier testing of the R64 assembler
+Set `option(TASS_BIN=...)` and `option(X64_BIN=...)` to set the assembler
+and emulator executable locations, or pass in as arguments
+`TASS$new(tass_bin=..., x64_bin=...)`
 }
 \examples{
 \dontrun{

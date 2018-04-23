@@ -4,6 +4,10 @@
 #-----------------------------------------------------------------------------
 #' Class wrapping the 64TASS assembler for easier testing of the R64 assembler
 #'
+#' Set `option(TASS_BIN=...)` and `option(X64_BIN=...)` to set the assembler
+#' and emulator executable locations, or pass in as arguments
+#' `TASS$new(tass_bin=..., x64_bin=...)`
+#'
 #' @examples
 #' \dontrun{
 #' tass <- TASS$new("./asm/border.asm")
@@ -37,20 +41,20 @@ TASS <- R6::R6Class(
     initialize = function(asm_filename=NULL, asm=NULL, prg_filename=NULL, tass_bin = "~/bin/64tass", x64_bin = '/usr/local/opt/vice/x64.app/Contents/MacOS/x64') {
 
       if (!is.null(asm)) {
-        self$asm_filename <- '/tmp/test.asm'
+        self$asm_filename <- tempfile(fileext=".asm", pattern = "r64-")
         writeLines(asm, self$asm_filename)
       } else {
         self$asm_filename <- asm_filename
       }
 
       if (is.null(prg_filename)) {
-        self$prg_filename <- paste0(tools::file_path_sans_ext(asm_filename), ".prg")
+        self$prg_filename <- paste0(tools::file_path_sans_ext(self$asm_filename), ".prg")
       } else {
         self$prg_filename <- prg_filename
       }
 
-      self$tass_bin <- tass_bin
-      self$x64_bin  <- x64_bin
+      self$tass_bin <- getOption("TASS_BIN", tass_bin)
+      self$x64_bin  <- getOption("X64_BIN" , x64_bin)
 
 
       invisible(self)
@@ -67,7 +71,7 @@ TASS <- R6::R6Class(
       command             <- glue::glue("{self$tass_bin} -C -a -i {self$asm_filename} -o {self$prg_filename}")
       self$compile_result <- system(command, intern = TRUE)
 
-      short_result <- grep("messages:", tass$compile_result, value=TRUE)
+      short_result <- grep("messages:", self$compile_result, value=TRUE)
       cat(paste(short_result, collapse="\n"), "\n")
 
       invisible(self)
