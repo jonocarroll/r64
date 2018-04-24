@@ -115,7 +115,7 @@ process_zero_padding <- function(prg_df) {
   if (nrow(zeros) > 0) {
     zeros %<>%
       mutate(
-        bytes     = list(rep(0L, nbytes)),
+        bytes     = purrr::map(nbytes, ~rep(0L, .x)),
         argbytes  = list(NA_integer_),
         line      = '(zero padding)',
         init_addr = next_addr,

@@ -26,80 +26,118 @@ ASCII
 
 In this vignette, we are going to:
 
-* generate a 40x25 character ASCII representation of the R logo
-* Incorporate that text into an R program using the `r64` package
-* Compile the code
+* generate a 25 x 40 character ASCII representation of the R logo
+* Incorporate that text into an R program using the `r64` package and the R-specific `.rtext` directive
+* Compile the code and run it in an emulator (VICE)
 
 
 
-Create very small ASCII art (40x25)
+`r64` - Using the `.rtext` directive
 ------------------------------------------------------------------------------
 
-```{r}
-library(r64)
-library(magick)
+One of the reasons to write this compiler in R is that R-specific ways of 
+introducing data into the program can be included.
+
+In this example, the `.rtext` directive is used to include text in a program 
+that is taken directly from an R variable containing a string.
 
 
+
+```{r, eval=TRUE, echo=FALSE}
 #-----------------------------------------------------------------------------
-# Some character set in density order.
-# Depending on white-on-black or black-on-white, 
-# the order may need to be reversed
+#' Create very small ASCII art suitable for a c64 screen
+#'
+#' c64 screens display 25x40 characters (1000 characters in total). This function
+#' uses the `magick` package to load and resize an image and then uses R
+#' to convert that into the ascii characters specified in the \code{alphabet} argument.
+#'
+#' @param alphabet defines the characters which will appear in the image. Must be specified in
+#'                 order of visual density for the output to look like input
+#' @param image_filename full path to image. will be loaded by \code{magick::image_read}
+#' @param invert boolean. whether to reverse the alphabet. default FALSE
+#'
+#' @return character matrix of size 25x40
+#'
+#' @import magick
+#' @export
 #-----------------------------------------------------------------------------
-alpha <- ' .:-=+*#%@'
-C     <- (strsplit(alpha,'')[[1]])
+create_ascii_art <- function(
+  alphabet       =  ' .:-=+*#%@',
+  image_filename = jpeg::readJPEG(system.file('img/Rlogo.jpg',package='jpeg')),
+  invert         = FALSE
+) {
+  #-----------------------------------------------------------------------------
+  # Some character set in density order.
+  # Depending on white-on-black or black-on-white,
+  # the order may need to be reversed
+  #-----------------------------------------------------------------------------
+  C     <- (strsplit(alphabet,'')[[1]])
+  if (invert) {C <- rev(C)}
+
+  #-----------------------------------------------------------------------------
+  # Read the standard Rlogo jpg and extract just a
+  # small grayscale representation
+  #-----------------------------------------------------------------------------
+  im <- magick::image_read(image_filename) %>%
+    magick::image_resize(geometry = "40x25") %>%
+    magick::image_convert(colorspace='Gray') %>%
+    magick::as_EBImage() %>%
+    as.matrix()
+  im <- t(im@.Data)
 
 
-#-----------------------------------------------------------------------------
-# Read the standard Rlogo jpg and extract just a
-# small grayscale representation
-#-----------------------------------------------------------------------------
-im <- magick::image_read(jpeg::readJPEG(system.file('img/Rlogo.jpg',package='jpeg'))) %>%
-  magick::image_resize(geometry = "40x25") %>%
-  magick::image_convert(colorspace='Gray') %>%
-  magick::as_EBImage() %>%
-  as.matrix()
-im <- t(im@.Data)
+  #-----------------------------------------------------------------------------
+  # Cut the image into qunatiles, with each interval represented by a
+  # different character in the sequence
+  #-----------------------------------------------------------------------------
+  qs     <- quantile(im, p=seq(0,1,length.out = length(C)))
+  levels <- findInterval(im, qs)
+  im[]   <- C[levels]
 
 
-#-----------------------------------------------------------------------------
-# Cut the image into qunatiles, with each interval represented by a
-# different character in the sequence
-#-----------------------------------------------------------------------------
-qs     <- quantile(im, p=seq(0,1,,length(C)))
-levels <- findInterval(im, qs)
-im[]   <- C[levels]
-
-
-#-----------------------------------------------------------------------------
-# pad out to 40 cols with blanks
-#-----------------------------------------------------------------------------
-extra_cols <- 40 - ncol(im)
-blank_col <- rep(' ', nrow(im))
-for (idx in seq_len(extra_cols)) {
-  if (idx %% 2 == 0) {
-    im <- cbind(im, blank_col)
-  } else {
-    im <- cbind(blank_col, im)
+  #-----------------------------------------------------------------------------
+  # pad out to 40 cols with blanks
+  #-----------------------------------------------------------------------------
+  extra_cols <- 40 - ncol(im)
+  blank_col <- rep(' ', nrow(im))
+  for (idx in seq_len(extra_cols)) {
+    if (idx %% 2 == 0) {
+      im <- cbind(im, blank_col)
+    } else {
+      im <- cbind(blank_col, im)
+    }
   }
-}
 
 
-#-----------------------------------------------------------------------------
-# Extra rows
-#-----------------------------------------------------------------------------
-extra_rows <- 25 - nrow(im)
-blank_row <- rep(' ', ncol(im))
-for (idx in seq_len(extra_rows)) {
-  if (idx %% 2 == 0) {
-    im <- rbind(im, blank_row)
-  } else {
-    im <- rbind(blank_row, im)
+  #-----------------------------------------------------------------------------
+  # Pad out to 25 rows with blanks
+  #-----------------------------------------------------------------------------
+  extra_rows <- 25 - nrow(im)
+  blank_row <- rep(' ', ncol(im))
+  for (idx in seq_len(extra_rows)) {
+    if (idx %% 2 == 0) {
+      im <- rbind(im, blank_row)
+    } else {
+      im <- rbind(blank_row, im)
+    }
   }
+
+  unname(im)
 }
 ```
 
 
+
+
+Create very small ASCII art (25 x 40)
+------------------------------------------------------------------------------
+
+* See end of this vignette for the `create_ascii_art()` function which creates
+  a 25 x 40 character matrix as an ascii version of the given image
+* Note: 25 x 40 is the height and width of the c64 character display.
+
 ```{r}
+im <- create_ascii_art(image_filename = jpeg::readJPEG(system.file('img/Rlogo.jpg',package='jpeg')))
 cat(apply(im, 1, paste,collapse=''), sep='\n')
 ```
 
@@ -107,44 +145,49 @@ cat(apply(im, 1, paste,collapse=''), sep='\n')
 Incorporate text from R into a c64 program
 ------------------------------------------------------------------------------
 
+* The full character matrix is 1000 characters.
+* c64 is an 8bit computer (8bits = 0-255), so indexing into a vector that is 1000 long is not straightforward.
+* Split the text message into 4 vectors of 250 character each
+
 ```{r}
 #-----------------------------------------------------------------------------
 # Convert to 4 strings, each with 250 chars, so that we can loop
 # over them on an 8-bit computer
 #-----------------------------------------------------------------------------
-rchars <- as.vector(t(im))
+rchars    <- as.vector(t(im))
 rmessage1 <- rchars[  1:250] %>% paste(collapse='')
 rmessage2 <- rchars[251:500] %>% paste(collapse='')
 rmessage3 <- rchars[501:750] %>% paste(collapse='')
 rmessage4 <- rchars[751:999] %>% paste(collapse='')
+```
 
+
+
+```{r}
 
 asm <- '*=$0801
-.byte $0c, $08, $0a, $00, $9e, $20
+.byte $0c, $08, $0a, $00, $9e, $20  ; 10 SYS 2080
 .byte $32, $30, $38, $30, $00, $00
 .byte $00
 *=$0820
-  lda #$93
+  lda #$93              ; clear the screen
   jsr $ffd2
 
-  lda #$0e   ; Switch to lowercase/upperase character mode
+  lda #$0e              ; Switch to lowercase/upperase character mode
   jsr $ffd2
 
-  ;lda #$01   ; set background to white
-  ;sta $d020
-  ;sta $d021
 
-  lda #$01   ; set text to black
+  lda #$01              ; set text to white
   sta $0286
 
-  ldy #$00
-  loop1 lda message1,y
-  jsr $ffd2
-  iny
-  cpy #$fa
+  ldy #$00              ; initialise offset index
+  loop1 lda message1,y  ; load the character in message1 at this offset
+  jsr $ffd2             ; use kernal routine to put character on screen
+  iny                   ; repeat ...
+  cpy #$fa              ;        ... 250 times
   bne loop1
 
-  ldy #$00
+  ldy #$00              ; now do the same for message2 text
 loop2
   lda message2,y
   jsr $ffd2
@@ -152,7 +195,7 @@ loop2
   cpy #$fa
   bne loop2
 
-  ldy #$00
+  ldy #$00              ; now do the same for message3 text
 loop3
   lda message3,y
   jsr $ffd2
@@ -160,7 +203,7 @@ loop3
   cpy #$fa
   bne loop3
 
-  ldy #$00
+  ldy #$00              ; now do the same for message4 text
 loop4
   lda message4,y
   jsr $ffd2
@@ -184,22 +227,116 @@ message4
 ```
 
 
+Compile the ASM into a PRG
+------------------------------------------------------------------------------
+
 ```{r}
 prg_df <- r64::compile(asm)
 ```
 
-```{r}
+```{r echo=FALSE, eval=FALSE}
 prg_df %>% 
   select(addr, line, op, opmode)
 ```
 
+
+Save the PRG and run it
+------------------------------------------------------------------------------
+
 ```{r eval=FALSE}
 outfile <- tempfile()
 r64::save_prg(prg_df, outfile)
-system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", outfile))
+system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", outfile), wait=FALSE)
 ```
 
 ![c64 screenshot in vice](img/ascii.png)
 
 
+
+
+Appendix: `create_ascii_art()`
+------------------------------------------------------------------------------
+
+```{r, eval=FALSE, echo=TRUE}
+#-----------------------------------------------------------------------------
+#' Create very small ASCII art suitable for a c64 screen
+#'
+#' c64 screens display 25x40 characters (1000 characters in total). This function
+#' uses the `magick` package to load and resize an image and then uses R
+#' to convert that into the ascii characters specified in the \code{alphabet} argument.
+#'
+#' @param alphabet defines the characters which will appear in the image. Must be specified in
+#'                 order of visual density for the output to look like input
+#' @param image_filename full path to image. will be loaded by \code{magick::image_read}
+#' @param invert boolean. whether to reverse the alphabet. default FALSE
+#'
+#' @return character matrix of size 25x40
+#'
+#' @import magick
+#' @export
+#-----------------------------------------------------------------------------
+create_ascii_art <- function(
+  alphabet       =  ' .:-=+*#%@',
+  image_filename = jpeg::readJPEG(system.file('img/Rlogo.jpg',package='jpeg')),
+  invert         = FALSE
+) {
+  #-----------------------------------------------------------------------------
+  # Some character set in density order.
+  # Depending on white-on-black or black-on-white,
+  # the order may need to be reversed
+  #-----------------------------------------------------------------------------
+  C     <- (strsplit(alphabet,'')[[1]])
+  if (invert) {C <- rev(C)}
+
+  #-----------------------------------------------------------------------------
+  # Read the standard Rlogo jpg and extract just a
+  # small grayscale representation
+  #-----------------------------------------------------------------------------
+  im <- magick::image_read(image_filename) %>%
+    magick::image_resize(geometry = "40x25") %>%
+    magick::image_convert(colorspace='Gray') %>%
+    magick::as_EBImage() %>%
+    as.matrix()
+  im <- t(im@.Data)
+
+
+  #-----------------------------------------------------------------------------
+  # Cut the image into qunatiles, with each interval represented by a
+  # different character in the sequence
+  #-----------------------------------------------------------------------------
+  qs     <- quantile(im, p=seq(0,1,length.out = length(C)))
+  levels <- findInterval(im, qs)
+  im[]   <- C[levels]
+
+
+  #-----------------------------------------------------------------------------
+  # pad out to 40 cols with blanks
+  #-----------------------------------------------------------------------------
+  extra_cols <- 40 - ncol(im)
+  blank_col <- rep(' ', nrow(im))
+  for (idx in seq_len(extra_cols)) {
+    if (idx %% 2 == 0) {
+      im <- cbind(im, blank_col)
+    } else {
+      im <- cbind(blank_col, im)
+    }
+  }
+
+
+  #-----------------------------------------------------------------------------
+  # Pad out to 25 rows with blanks
+  #-----------------------------------------------------------------------------
+  extra_rows <- 25 - nrow(im)
+  blank_row <- rep(' ', ncol(im))
+  for (idx in seq_len(extra_rows)) {
+    if (idx %% 2 == 0) {
+      im <- rbind(im, blank_row)
+    } else {
+      im <- rbind(blank_row, im)
+    }
+  }
+
+  unname(im)
+}
+```
 

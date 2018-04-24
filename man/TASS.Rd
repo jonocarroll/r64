@@ -15,7 +15,7 @@ and emulator executable locations, or pass in as arguments
 }
 \examples{
 \dontrun{
-tass <- TASS$new("./asm/border.asm")
+tass <- TASS$new("./asm/border.asm", tass_bin = "~/bin/64tass", x64_bin = "~/bin/x64")
 tass$dump_asm()
 tass$compile()
 tass$get_prg()

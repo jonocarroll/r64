@@ -1,5 +1,5 @@
 ---
-title: "Hello World"
+title: "Hello Border"
 author: "mikefc@coolbutuseless.com"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -20,7 +20,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-Write your c64 ASM code
+
+
+Write your c64 ASM code to flash the screen border
 ------------------------------------------------------------------------------
 
 ```{r}
@@ -33,21 +35,9 @@ asm <- '
   .byte $00
 
 *=$0820
-      lda #$93        ; Clear the screen
-      jsr $ffd2
-
-      ldx #$00        ; initialise the offset pointer into our message
-loop  lda message,x   ; load a character and write it to screen 
-      and #$3f        ; Manually place chars on screen
-      sta $0400,x
-      inx
-      cpx #$0e
-      bne loop
-
-      rts
-
-message
-    .text "Hello #rstats!"
+loop
+      inc $d020
+      jmp loop
 '
 ```
 
@@ -98,7 +88,6 @@ identical(r64::extract_prg_bytes(prg_df), tass$get_prg())
 ```
 
 
-
 Run the program using an emulator
 ------------------------------------------------------------------------------
 
@@ -106,4 +95,7 @@ Run the program using an emulator
 system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", prg_filename))
 ```
 
-![](img/helloworld.gif)
+![](img/helloborder.png)
+
+
+

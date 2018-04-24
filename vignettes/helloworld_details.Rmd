@@ -1,0 +1,199 @@
+---
+title: "Hello World - compilation details"
+author: "mikefc@coolbutuseless.com"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(purrr)
+  library(r64)  
+})
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+```{r}
+library(dplyr)
+library(r64)
+
+asm <- '
+*=$0801
+  .byte $0c, $08, $0a, $00, $9e, $20
+  .byte $32, $30, $38, $30, $00, $00
+  .byte $00
+
+*=$0820
+      ldx #$00
+loop  lda message,x
+      and #$3f
+      sta $0400,x
+      inx
+      cpx #$0c
+      bne loop
+
+      rts
+
+message
+    .text "Hello World!"
+'
+```
+
+
+r64 defines a set of tokens in the ASM file
+------------------------------------------------------------------------------
+
+```{r}
+#-----------------------------------------------------------------------------
+#' Regex patterns for parsing 6502 assembly
+#-----------------------------------------------------------------------------
+asm_patterns <- c(
+  newline    = '\n',
+  whitespace = '\\s+',
+  PC         = '\\*',
+  immediate  = '#\\$[0-9a-fA-F]{2}',
+  word       = '\\$[0-9a-fA-F]{4}',
+  byte       = '\\$[0-9a-fA-F]{2}',
+  opcode     = "\\b(ADC|AHX|ALR|ANC|AND|ARR|ASL|AXS|BCC|BCS|BEQ|BIT|BMI|BNE|BPL|BRK|BVC|BVS|CLC|CLD|CLI|CLV|CMP|CPX|CPY|DCP|DEC|DEX|DEY|EOR|INC|INX|INY|ISC|JMP|JSR|LAS|LAX|LAX|LDA|LDX|LDY|LSR|NOP|ORA|PHA|PHP|PLA|PLP|RLA|ROL|ROR|RRA|RTI|RTS|SAX|SBC|SEC|SED|SEI|SHX|SHY|SLO|SRE|STA|STX|STY|TAS|TAX|TAY|TSX|TXA|TXS|TYA|XAA|adc|ahx|alr|anc|and|arr|asl|axs|bcc|bcs|beq|bit|bmi|bne|bpl|brk|bvc|bvs|clc|cld|cli|clv|cmp|cpx|cpy|dcp|dec|dex|dey|eor|inc|inx|iny|isc|jmp|jsr|las|lax|lax|lda|ldx|ldy|lsr|nop|ora|pha|php|pla|plp|rla|rol|ror|rra|rti|rts|sax|sbc|sec|sed|sei|shx|shy|slo|sre|sta|stx|sty|tas|tax|tay|tsx|txa|txs|tya|xaa)\\b",
+  byte_inst  = '\\.byte',
+  text_inst  = '\\.text',
+  rtext_inst = '\\.rtext',
+  rbyte_inst = '\\.rbyte',
+  lbracket   = '\\(',
+  rbracket   = '\\)',
+  langle     = '<',
+  rangle     = '>',
+  text       = '".*?"',
+  comma      = ",",
+  colon      = ":",
+  equals     = '=',
+  comment    = '(;[^\n]*)',
+  x          = '(x|X)',
+  y          = '(y|Y)',
+  symbol     = '[^\\s:,]+'
+)
+```
+
+
+
+
+Each line is split into tokens
+------------------------------------------------------------------------------
+
+* Each line is split into tokens
+* any `comma`, `whitespace` or `comment` tokens are discarded
+* any blank lines are discarded
+
+```{r}
+line_tokens <- r64::create_line_tokens(asm)
+line_tokens
+```
+
+
+The main `prg_df` datastructure is created from `line_tokens`
+------------------------------------------------------------------------------
+
+```{r}
+prg_df <- r64::create_prg_df(line_tokens)
+```
+
+```{r echo=FALSE}
+prg_df %>% 
+  select(-argbytes, -value, -op, -opcommand, -nargbytes, -nopbytes) %>%
+  knitr::kable()
+```
+
+
+Calculate addresses and replace any symbols with these values
+------------------------------------------------------------------------------
+
+```{r}
+prg_df <- r64::process_xrefs(prg_df)
+```
+
+```{r echo=FALSE}
+prg_df %>% 
+  select(-argbytes, -hexbytes, -value, -op, -symbolop, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
+  knitr::kable()
+```
+
+
+
+
+
+
+Add zero padding so there are no gaps
+------------------------------------------------------------------------------
+
+* PRG files must represent a contiguous sequence of bytes - no gaps allowed!
+* Find and insert sequences of zeros to ensure all gaps are filled.
+
+```{r}
+prg_df <- r64::process_zero_padding(prg_df)
+```
+
+```{r echo=FALSE}
+prg_df %>% 
+  select(-argbytes, -hexbytes, -value, -op, -symbolop, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
+  knitr::kable()
+```
+
+
+Extract the bytes from `prg_df`
+------------------------------------------------------------------------------
+
+* `prg_df$bytes` is a list column
+* Use `purrr::flatten()` to convert to an integer vector (and remove any NULL entries)
+
+```{r}
+prg_df$bytes %>%
+  purrr::flatten_int() %>%
+  as.raw()
+```
+
+
+
+
+Add the loading address to get the complete PRG
+------------------------------------------------------------------------------
+
+* PRG files are prefixed by their first address so they can be loaded in the 
+  right location.
+* Take the first address in `prg_df` and convert it to 2 bytes in low-byte/high-byte
+  format using `r64::address_to_bytes()`
+
+
+```{r}
+# The following is equivalent to:  r64::extract_prg_bytes(prg_df)
+as.raw(c(address_to_bytes(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
+```
+
+
+Save the PRG
+------------------------------------------------------------------------------
+
+* Just write the bytes directly to file with `writeBin()` - no other processing is needed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
