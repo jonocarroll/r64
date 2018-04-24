@@ -14,6 +14,7 @@ test_that("compare to TASS", {
     if (!file.exists(tass$tass_bin)) {
       warning("set 'option(TASS_BIN=...)' to your TASS64 path to run compiler tests")
     } else {
+      print(asm_file)
       tass$compile()
       expect_identical(prg_bytes, tass$get_prg())
     }

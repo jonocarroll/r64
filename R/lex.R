@@ -26,7 +26,7 @@ asm_patterns <- c(
   comment    = '(;[^\n]*)',
   x          = '(x|X)',
   y          = '(y|Y)',
-  symbol     = '[^\\s:,]+'
+  symbol     = '[^\\s:,)]+'
 )
 
 

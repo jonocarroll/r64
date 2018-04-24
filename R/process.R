@@ -30,7 +30,8 @@ process_xrefs <- function(prg_df) {
   # - nbytes for each instruction
   #-----------------------------------------------------------------------------
   prg_df %<>%
-    tidyr::fill(init_addr) %>%
+    tidyr::fill(init_addr, .direction='down') %>%
+    tidyr::fill(init_addr, .direction='up'  ) %>%
     mutate(addr = init_addr) %>%
     group_by(init_addr) %>%
     mutate(
@@ -40,7 +41,6 @@ process_xrefs <- function(prg_df) {
     ungroup() %>%
     select(-bytes_so_far) %>%
     select(addr, everything())
-
 
 
   #-----------------------------------------------------------------------------

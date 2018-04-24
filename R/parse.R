@@ -74,6 +74,7 @@ get_opcode_info <- function(tokens) {
     symbol$actual <- symbol_actual
   }
 
+  symbolop <- NULL
 
   #---------------------------------------------------------------------------
   # Use the 'types' of the 'tokens' as a template for determining what the
@@ -93,13 +94,39 @@ get_opcode_info <- function(tokens) {
     argbytes  <- list(h2i(tokens[2]))
   } else if (identical(types[-3], c('opcode', 'lbracket', 'rbracket')) && ('indirect' %in% modes)) {
     opmode    <- 'indirect'
-    argbytes  <- list(address_to_bytes(h2i(tokens[3])))
+    if (types[3] == 'word') {
+      argbytes <- list(address_to_bytes(h2i(tokens[3])))
+    } else if (types[3] == 'byte') {
+      argbytes <- list(h2i(tokens[3]))
+    } else if (types[3] == 'symbol') {
+      xref     <- symbol$actual
+      symbolop <- 'low'          # only ever want the low byte for zeropage indirect addressing
+      argbytes <- list(c(0L))
+    } else {
+      stop("Invalid syntax for indirect addressing")
+    }
   } else if (identical(types[-3], c('opcode', 'lbracket', 'x', 'rbracket')) && ('indirect x' %in% modes)) {
     opmode    <- 'indirect x'
-    argbytes  <- list(address_to_bytes(h2i(tokens[3])))
+    if (types[3] == 'byte') {
+      argbytes <- list(h2i(tokens[3]))
+    } else if (types[3] == 'symbol') {
+      xref     <- symbol$actual
+      symbolop <- 'low'          # only ever want the low byte for zeropage indirect addressing
+      argbytes <- list(c(0L))
+    } else {
+      stop("Invalid syntax for indirect addressing")
+    }
   } else if (identical(types[-3], c('opcode', 'lbracket', 'rbracket', 'y')) && ('indirect y' %in% modes)) {
     opmode    <- 'indirect y'
-    argbytes  <- list(address_to_bytes(h2i(tokens[3])))
+    if (types[3] == 'byte') {
+      argbytes <- list(h2i(tokens[3]))
+    } else if (types[3] == 'symbol') {
+      xref     <- symbol$actual
+      symbolop <- 'low'          # only ever want the low byte for zeropage indirect addressing
+      argbytes <- list(c(0L))
+    } else {
+      stop("Invalid syntax for indirect")
+    }
   } else if (identical(types, c('opcode', 'word')) && ('absolute' %in% modes)) {
     opmode    <- 'absolute'
     argbytes  <- list(address_to_bytes(h2i(tokens[2])))
@@ -172,7 +199,7 @@ get_opcode_info <- function(tokens) {
     opcommand = command,
     xref      = xref,
     argbytes  = argbytes,
-    symbolop  = ifelse(xref != '', symbol$op %||% opmode, NA_character_)
+    symbolop  = ifelse(xref != '', symbolop %||% symbol$op %||% opmode, NA_character_)
   )
 }
 
@@ -204,6 +231,10 @@ create_prg_df_row <- function(tokens) {
   } else if (identical(types, c('symbol', 'equals', 'word'))) {
     res$label <- tokens[1]
     res$value <- list(address_to_bytes(h2i(tokens[3])))
+    return(res)
+  } else if (identical(types, c('symbol', 'equals', 'byte'))) {
+    res$label <- tokens[1]
+    res$value <- list(h2i(tokens[3]))
     return(res)
   } else if (identical(types[1], 'symbol')) {
     res$label <- tokens[1]

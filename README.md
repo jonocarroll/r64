@@ -27,7 +27,7 @@ General features
     * e.g. `* = $0801`
 * Defined variables
     * e.g. `border = $d020`
-* Low/High byte extraction from symol (similar to TASS)
+* Low/High byte extraction from symbol (similar to TASS)
     * e.g. `lda #<routine` will store the low byte of the address of symbol `routine` in the `A` register
 
 For integration with R
@@ -152,7 +152,7 @@ r64::save_prg(prg_df, prg_filename)
 system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", prg_filename), wait=FALSE)
 ```
 
-![helloworld output](img/hello.gif)
+![helloworld output](vignettes/img/helloworld.gif)
 
 
 Breakdown of assembly process

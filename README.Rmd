@@ -137,7 +137,7 @@ r64::save_prg(prg_df, prg_filename)
 system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", prg_filename), wait=FALSE)
 ```
 
-![helloworld output](img/hello.gif)
+![helloworld output](vignettes/img/helloworld.gif)
 
 
 Breakdown of assembly process
