@@ -38,11 +38,14 @@ border = $d020
       lda #$93        ; Clear the screen
       jsr $ffd2
 
-loop  inc $d020
+loop  inc border
 crap
       inc {border + 1}
-      ;jmp {crap - 3}
-      jmp loop
+      jmp {.* + 6}
+      nop
+      nop
+      nop
+      jmp {crap - 3}
 '
 
 

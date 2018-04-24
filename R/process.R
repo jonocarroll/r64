@@ -3,7 +3,8 @@ globalVariables(c('nbytes', 'addr', 'bytes_so_far', 'value',
                   'symbol_address', 'symbol_bytes', 'symbol_offset',
                   'symbol_op', 'argbytes', 'bytes', 'nbytes',
                   'hexbytes', 'next_addr', 'label_value', 'label_value_final',
-                  'symbol_expr', 'symbol_value', 'symbol_lo', 'symbol_hi'))
+                  'symbol_expr', 'symbol_value', 'symbol_lo', 'symbol_hi',
+                  'row_symbol_values'))
 
 
 #-----------------------------------------------------------------------------
@@ -58,6 +59,13 @@ process_symbols <- function(prg_df) {
 
   symbol_values <- as.list(symbol$label_value_final) %>% rlang::set_names(symbol$symbol)
 
+  # add the address to each row's set of symbol values
+  # This is so references to 'addr' or '.*' work automatically
+  prg_df %<>%
+    mutate(
+      row_symbol_values = addr %>% map(~c(symbol_values, list(addr=.x)))
+    )
+
   #-----------------------------------------------------------------------------
   # All symbols are resolved by evaluating their expression, using
   # 'symbol_values' as the environment
@@ -65,7 +73,8 @@ process_symbols <- function(prg_df) {
 
   prg_df %<>%
     mutate(
-      symbol_value = symbol_expr %>% purrr::map_int(~as.integer(eval(parse(text=.x), envir = symbol_values))),
+      symbol_value = purrr::map2_int(symbol_expr, row_symbol_values,
+                                     ~as.integer(eval(parse(text=.x), envir = .y))),
       symbol_bytes = map(symbol_value, w2b),
       symbol_lo    = map(symbol_value, lo ),
       symbol_hi    = map(symbol_value, hi ),

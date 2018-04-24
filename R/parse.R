@@ -71,11 +71,17 @@ get_opcode_info <- function(tokens) {
       symbol_actual <- gsub("^>", '', symbol_actual)
     }
 
+    # this is just a symbol name with no arithmetic
     symbol$expr <- symbol_actual
 
+    # if this symbol is actually wrapped in {} then
+    # it can be a full expression.   ".*" can be
+    # used as a short cut for the current program counter
+    # at the beginning of this instruction
     if (grepl("^\\{", symbol_actual)) {
-      symbol_actual <- gsub("^\\{", '', symbol_actual)
-      symbol_actual <- gsub("\\}$", '', symbol_actual)
+      symbol_actual <- gsub("^\\{"  ,     '', symbol_actual)
+      symbol_actual <- gsub("\\}$"  ,     '', symbol_actual)
+      symbol_actual <- gsub('\\.\\*', 'addr', symbol_actual)
       symbol$expr   <- symbol_actual
       symbol_actual <- 'Rexpr'
     }
