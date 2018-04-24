@@ -1,5 +1,5 @@
 ---
-title: "Hello Border"
+title: "Symbol arithmetic"
 author: "mikefc@coolbutuseless.com"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
@@ -20,9 +20,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-
-
-Write your c64 ASM code to flash the screen border
+Write your c64 ASM code
 ------------------------------------------------------------------------------
 
 ```{r}
@@ -34,37 +32,50 @@ asm <- '
   .byte $32, $30, $38, $30, $00, $00
   .byte $00
 
+border = $d020
+
 *=$0820
-loop
-      inc $d020
+      lda #$93        ; Clear the screen
+      jsr $ffd2
+
+loop  inc $d020
+crap
+      inc {border + 1}
+      ;jmp {crap - 3}
       jmp loop
 '
-```
 
 
-Compile in one step
-------------------------------------------------------------------------------
-
-```{r}
-prg_df <- r64::compile(asm)
-
-r64::extract_prg_bytes(prg_df)
-```
-
-
-
-Compile in multiple steps (for debugging purposes)
-------------------------------------------------------------------------------
-
-```{r}
 line_tokens <- r64::create_line_tokens(asm)
 
 prg_df      <- r64::create_prg_df(line_tokens)
 prg_df      <- r64::process_symbols(prg_df)
+
+
+prg_df %>% print(n=Inf)
+```
+
+
+
+```{r}
 prg_df      <- r64::process_zero_padding(prg_df)
 
-r64::extract_prg_bytes(prg_df)
+prg_df %>% print(n=Inf)
+
 ```
+
+
+
+```{r}
+
+r64::extract_prg_bytes(prg_df)
+# tass <- r64::TASS$new(asm = asm)
+# tass_prg <- tass$compile()$get_prg()
+# tass_prg
+# identical(tass_prg, r64::extract_prg_bytes(prg_df))
+```
+
+
 
 
 Save to file 
@@ -76,17 +87,6 @@ save_prg(prg_df, prg_filename)
 ```
 
 
-Compare the output with a more complete compiler (TASS64)
-------------------------------------------------------------------------------
-
-```{r}
-tass <- r64::TASS$new(asm = asm)
-tass$compile()
-tass$get_prg()
-
-identical(r64::extract_prg_bytes(prg_df), tass$get_prg())
-```
-
 
 Run the program using an emulator
 ------------------------------------------------------------------------------
@@ -95,7 +95,4 @@ Run the program using an emulator
 system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", prg_filename))
 ```
 
-![](img/helloborder.png)
-
-
-
+![](img/helloworld.gif)

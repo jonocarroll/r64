@@ -109,7 +109,7 @@ prg_df <- r64::create_prg_df(line_tokens)
 
 ```{r echo=FALSE}
 prg_df %>% 
-  select(-argbytes, -value, -op, -opcommand, -nargbytes, -nopbytes) %>%
+  select(-argbytes, -label_value, -op, -opcommand, -nargbytes, -nopbytes) %>%
   knitr::kable()
 ```
 
@@ -118,12 +118,12 @@ Calculate addresses and replace any symbols with these values
 ------------------------------------------------------------------------------
 
 ```{r}
-prg_df <- r64::process_xrefs(prg_df)
+prg_df <- r64::process_symbols(prg_df)
 ```
 
 ```{r echo=FALSE}
 prg_df %>% 
-  select(-argbytes, -hexbytes, -value, -op, -symbolop, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
+  select(-argbytes, -hexbytes, -label_value, -op, -symbol_op, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
   knitr::kable()
 ```
 
@@ -144,7 +144,7 @@ prg_df <- r64::process_zero_padding(prg_df)
 
 ```{r echo=FALSE}
 prg_df %>% 
-  select(-argbytes, -hexbytes, -value, -op, -symbolop, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
+  select(-argbytes, -hexbytes, -label_value, -op, -symbol_op, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
   knitr::kable()
 ```
 
@@ -170,12 +170,12 @@ Add the loading address to get the complete PRG
 * PRG files are prefixed by their first address so they can be loaded in the 
   right location.
 * Take the first address in `prg_df` and convert it to 2 bytes in low-byte/high-byte
-  format using `r64::address_to_bytes()`
+  format using `r64::w2b()`
 
 
 ```{r}
 # The following is equivalent to:  r64::extract_prg_bytes(prg_df)
-as.raw(c(address_to_bytes(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
+as.raw(c(w2b(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
 ```
 
 

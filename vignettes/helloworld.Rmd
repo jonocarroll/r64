@@ -70,7 +70,7 @@ Compile in multiple steps (for debugging purposes)
 line_tokens <- r64::create_line_tokens(asm)
 
 prg_df      <- r64::create_prg_df(line_tokens)
-prg_df      <- r64::process_xrefs(prg_df)
+prg_df      <- r64::process_symbols(prg_df)
 prg_df      <- r64::process_zero_padding(prg_df)
 
 r64::extract_prg_bytes(prg_df)

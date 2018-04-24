@@ -19,7 +19,7 @@
 compile <- function(asm) {
   line_tokens <- create_line_tokens(asm)
   prg_df      <- create_prg_df(line_tokens)
-  prg_df      <- process_xrefs(prg_df)
+  prg_df      <- process_symbols(prg_df)
   prg_df      <- process_zero_padding(prg_df)
 
   prg_df

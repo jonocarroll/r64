@@ -76,7 +76,7 @@ s2i <- function(string) {
 
 
 #-----------------------------------------------------------------------------
-#' Convert an address to 2 bytes (lo_byte, hi_byte) as is the 6502 way
+#' Convert a 16bit address to 2 bytes (lo_byte, hi_byte) as is the 6502 way
 #'
 #' @param address address from $0000 to $ffff
 #'
@@ -84,7 +84,44 @@ s2i <- function(string) {
 #'
 #' @export
 #-----------------------------------------------------------------------------
-address_to_bytes <- function(address) {
+w2b <- function(address) {
   address <- as.integer(address)
-  c(address %% 256L, address %/% 256L)
+  c(lo(address), hi(address))
 }
+
+#-----------------------------------------------------------------------------
+#' Fetch the low byte of a 16bit address
+#'
+#' @param address address from $0000 to $ffff
+#'
+#' @return integer value for the low byte of this address
+#'
+#' @export
+#-----------------------------------------------------------------------------
+lo <- function(address) {
+  address <- as.integer(address)
+  address %% 256L
+}
+
+#-----------------------------------------------------------------------------
+#' Fetch the high byte of a 16bit address
+#'
+#' @param address address from $0000 to $ffff
+#'
+#' @return integer value for the high byte of this address
+#'
+#' @export
+#-----------------------------------------------------------------------------
+hi <- function(address) {
+  address <- as.integer(address)
+  address %/% 256L
+}
+
+
+
+
+
+
+
+
+

@@ -7,7 +7,7 @@
 process_zero_padding(prg_df)
 }
 \arguments{
-\item{prg_df}{main assembler data.frame after `process_xrefs()` has been run}
+\item{prg_df}{main assembler data.frame after `process_symbols()` has been run}
 }
 \value{
 prg_df updated with zero padding rows between address blocks so that

@@ -1,5 +1,5 @@
 
-globalVariables(c('opcodes', 'opbyte', 'init_addr', 'label', 'xref',
+globalVariables(c('opcodes', 'opbyte', 'init_addr', 'label',
                   'line', 'opcommand', 'op', 'opmode', 'ophex', 'nopbytes',
                   'nargbytes'))
 
@@ -27,7 +27,6 @@ get_opcode_info <- function(tokens) {
   # Default values
   #---------------------------------------------------------------------------
   command  <- paste(tokens, collapse=" ")
-  xref     <- ''
   argbytes <- list(NULL)
 
   #---------------------------------------------------------------------------
@@ -35,7 +34,7 @@ get_opcode_info <- function(tokens) {
   # Put in an 'unknown' opmode for now and catch this error later
   #---------------------------------------------------------------------------
   if (!identical(types[1], 'opcode')) {
-    return(data_frame(opmode = 'unknown', nopbytes = NA_integer_, nargbytes = NA_integer_, opcommand=command, xref=xref, argbytes=argbytes))
+    return(data_frame(opmode = 'unknown', nopbytes = NA_integer_, nargbytes = NA_integer_, opcommand=command, argbytes=argbytes))
   }
 
   #---------------------------------------------------------------------------
@@ -71,10 +70,21 @@ get_opcode_info <- function(tokens) {
       symbol$op     <- 'high'
       symbol_actual <- gsub("^>", '', symbol_actual)
     }
+
+    symbol$expr <- symbol_actual
+
+    if (grepl("^\\{", symbol_actual)) {
+      symbol_actual <- gsub("^\\{", '', symbol_actual)
+      symbol_actual <- gsub("\\}$", '', symbol_actual)
+      symbol$expr   <- symbol_actual
+      symbol_actual <- 'Rexpr'
+    }
+
+
     symbol$actual <- symbol_actual
   }
 
-  symbolop <- NULL
+  symbol_op <- NULL
 
   #---------------------------------------------------------------------------
   # Use the 'types' of the 'tokens' as a template for determining what the
@@ -95,12 +105,11 @@ get_opcode_info <- function(tokens) {
   } else if (identical(types[-3], c('opcode', 'lbracket', 'rbracket')) && ('indirect' %in% modes)) {
     opmode    <- 'indirect'
     if (types[3] == 'word') {
-      argbytes <- list(address_to_bytes(h2i(tokens[3])))
+      argbytes <- list(w2b(h2i(tokens[3])))
     } else if (types[3] == 'byte') {
       argbytes <- list(h2i(tokens[3]))
     } else if (types[3] == 'symbol') {
-      xref     <- symbol$actual
-      symbolop <- 'low'          # only ever want the low byte for zeropage indirect addressing
+      symbol_op <- 'low'          # only ever want the low byte for zeropage indirect addressing
       argbytes <- list(c(0L))
     } else {
       stop("Invalid syntax for indirect addressing")
@@ -110,8 +119,7 @@ get_opcode_info <- function(tokens) {
     if (types[3] == 'byte') {
       argbytes <- list(h2i(tokens[3]))
     } else if (types[3] == 'symbol') {
-      xref     <- symbol$actual
-      symbolop <- 'low'          # only ever want the low byte for zeropage indirect addressing
+      symbol_op <- 'low'          # only ever want the low byte for zeropage indirect addressing
       argbytes <- list(c(0L))
     } else {
       stop("Invalid syntax for indirect addressing")
@@ -121,21 +129,20 @@ get_opcode_info <- function(tokens) {
     if (types[3] == 'byte') {
       argbytes <- list(h2i(tokens[3]))
     } else if (types[3] == 'symbol') {
-      xref     <- symbol$actual
-      symbolop <- 'low'          # only ever want the low byte for zeropage indirect addressing
+      symbol_op <- 'low'          # only ever want the low byte for zeropage indirect addressing
       argbytes <- list(c(0L))
     } else {
       stop("Invalid syntax for indirect")
     }
   } else if (identical(types, c('opcode', 'word')) && ('absolute' %in% modes)) {
     opmode    <- 'absolute'
-    argbytes  <- list(address_to_bytes(h2i(tokens[2])))
+    argbytes  <- list(w2b(h2i(tokens[2])))
   } else if (identical(types, c('opcode', 'word', 'x')) && ('absolute x' %in% modes)) {
     opmode    <- 'absolute x'
-    argbytes  <- list(address_to_bytes(h2i(tokens[2])))
+    argbytes  <- list(w2b(h2i(tokens[2])))
   } else if (identical(types, c('opcode', 'word', 'y')) && ('absolute y' %in% modes)) {
     opmode    <- 'absolute y'
-    argbytes  <- list(address_to_bytes(h2i(tokens[2])))
+    argbytes  <- list(w2b(h2i(tokens[2])))
   } else if (identical(types, c('opcode', 'byte')) && ('zero page' %in% modes)) {
     opmode    <- 'zero page'
     argbytes  <- list(h2i(tokens[2]))
@@ -150,21 +157,17 @@ get_opcode_info <- function(tokens) {
     argbytes  <- list(h2i(tokens[2]))
   } else if (identical(types, c('opcode', 'symbol')) && ('relative' %in% modes)) {
     opmode    <- 'relative'
-    xref      <- symbol$actual
     argbytes  <- list(c(0L))
   } else if (identical(types, c('opcode', 'symbol')) && ('absolute' %in% modes)) {
     opmode    <- symbol$mode %||% 'absolute'
-    xref      <- symbol$actual
     argbytes  <- ifelse(grepl('absolute', opmode), list(c(0L, 0L)), list(c(0L)))
   } else if (identical(types, c('opcode', 'symbol', 'x')) && ('absolute x' %in% modes)) {
     opmode    <- symbol$mode %||% 'absolute'
     opmode    <- paste(opmode, 'x')
-    xref      <- symbol$actual
     argbytes  <- ifelse(grepl('absolute', opmode), list(c(0L, 0L)), list(c(0L)))
   } else if (identical(types, c('opcode', 'symbol', 'y')) && ('absolute y' %in% modes)) {
     opmode    <- symbol$mode %||% 'absolute'
     opmode    <- paste(opmode, 'y')
-    xref      <- symbol$actual
     argbytes  <- ifelse(grepl('absolute', opmode), list(c(0L, 0L)), list(c(0L)))
   } else {
     print(tokens)
@@ -190,16 +193,16 @@ get_opcode_info <- function(tokens) {
   # Construct a full table of opcode info for this set of tokens
   #---------------------------------------------------------------------------
   data_frame(
-    op        = tokens[1],
-    opbyte    = opcode_info$dec,
-    ophex     = as.character(as.hexmode(opcode_info$dec)),
-    opmode    = opmode,
-    nopbytes  = 1L,
-    nargbytes = length(argbytes[[1]]),
-    opcommand = command,
-    xref      = xref,
-    argbytes  = argbytes,
-    symbolop  = ifelse(xref != '', symbolop %||% symbol$op %||% opmode, NA_character_)
+    op          = tokens[1],
+    opbyte      = opcode_info$dec,
+    ophex       = as.character(as.hexmode(opcode_info$dec)),
+    opmode      = opmode,
+    nopbytes    = 1L,
+    nargbytes   = length(argbytes[[1]]),
+    opcommand   = command,
+    argbytes    = argbytes,
+    symbol_op    = ifelse(!is.null(symbol$expr), symbol_op %||% symbol$op %||% opmode, NA_character_),
+    symbol_expr = symbol$expr %||% NA_character_
   )
 }
 
@@ -223,18 +226,18 @@ get_opcode_info <- function(tokens) {
 create_prg_df_row <- function(tokens) {
   types <- names(tokens)
 
-  res <- data_frame(line = paste(tokens, collapse=" "), value=list(c()))
+  res <- data_frame(line = paste(tokens, collapse=" "), label_value=NA_integer_)
 
   if (identical(types, 'symbol')) {
     res$label <- tokens[1]
     return(res)
   } else if (identical(types, c('symbol', 'equals', 'word'))) {
-    res$label <- tokens[1]
-    res$value <- list(address_to_bytes(h2i(tokens[3])))
+    res$label        <- tokens[1]
+    res$label_value  <- h2i(tokens[3])
     return(res)
   } else if (identical(types, c('symbol', 'equals', 'byte'))) {
-    res$label <- tokens[1]
-    res$value <- list(h2i(tokens[3]))
+    res$label        <- tokens[1]
+    res$label_value  <- h2i(tokens[3])
     return(res)
   } else if (identical(types[1], 'symbol')) {
     res$label <- tokens[1]
@@ -288,8 +291,8 @@ create_prg_df_row <- function(tokens) {
 create_prg_df <- function(line_tokens) {
   prg_df <- line_tokens %>%
     purrr::map_dfr(create_prg_df_row) %>%
-    select(init_addr, label, xref, line, opcommand, op, opmode, opbyte, ophex, everything()) %>%
-    tidyr::replace_na(list(nopbytes=0L, nargbytes=0L, xref='')) %>%
+    select(init_addr, label, line, opcommand, op, opmode, opbyte, ophex, everything()) %>%
+    tidyr::replace_na(list(nopbytes=0L, nargbytes=0L)) %>%
     mutate(
       nbytes = nopbytes + nargbytes
     )

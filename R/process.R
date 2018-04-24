@@ -1,8 +1,9 @@
 
 globalVariables(c('nbytes', 'addr', 'bytes_so_far', 'value',
-                  'xref_address', 'xref_bytes', 'xref_relative',
-                  'symbolop', 'argbytes', 'bytes', 'nbytes',
-                  'hexbytes', 'next_addr'))
+                  'symbol_address', 'symbol_bytes', 'symbol_offset',
+                  'symbol_op', 'argbytes', 'bytes', 'nbytes',
+                  'hexbytes', 'next_addr', 'label_value', 'label_value_final',
+                  'symbol_expr', 'symbol_value', 'symbol_lo', 'symbol_hi'))
 
 
 #-----------------------------------------------------------------------------
@@ -18,7 +19,7 @@ globalVariables(c('nbytes', 'addr', 'bytes_so_far', 'value',
 #' @importFrom tidyr fill
 #' @export
 #-----------------------------------------------------------------------------
-process_xrefs <- function(prg_df) {
+process_symbols <- function(prg_df) {
   if (any(prg_df$opmode == 'unknown', na.rm = TRUE)) {
     stop("Unknown opcodes")
   }
@@ -45,35 +46,39 @@ process_xrefs <- function(prg_df) {
 
   #-----------------------------------------------------------------------------
   # Address cross-reference resolution.
-  # Some xrefs are for addresses,
+  # Some symbols are for addresses,
   # others are for defined constants
   #-----------------------------------------------------------------------------
-  xref <- prg_df %>%
+  symbol <- prg_df %>%
     filter(!is.na(label)) %>%
-    select(xref = label, xref_address = addr, value) %>%
+    select(symbol = label, symbol_address = addr, label_value_final = label_value) %>%
     mutate(
-      xref_bytes = map(xref_address, address_to_bytes),
-      xref_bytes = ifelse(map_lgl(value, is.null), xref_bytes, value),
-      xref_chr   = xref_bytes %>% map_chr(~paste(.x, collapse=", "))
+      label_value_final = ifelse(is.na(label_value_final), symbol_address, label_value_final)
     )
 
-  xref %<>% select(xref, xref_address, xref_bytes)
+  symbol_values <- as.list(symbol$label_value_final) %>% rlang::set_names(symbol$symbol)
 
-
+  #-----------------------------------------------------------------------------
+  # All symbols are resolved by evaluating their expression, using
+  # 'symbol_values' as the environment
+  #-----------------------------------------------------------------------------
 
   prg_df %<>%
-    left_join(xref, by='xref') %>%
     mutate(
-      xref_relative = xref_address - addr - 2L,  # not sure where the offset sould be calculated from
-      xref_relative = ifelse(xref_relative < 0, 256L + xref_relative, xref_relative),
-      xref_relative = as.list(xref_relative),
-      argbytes      = if_else(xref!='' & symbolop == 'relative', xref_relative, argbytes, argbytes),
-      argbytes      = if_else(xref!='' & symbolop %in% c('absolute', 'absolute x', 'absolute y'), xref_bytes   , argbytes, argbytes),
-      argbytes      = if_else(xref!='' & symbolop == 'low'     , map(xref_bytes, 1), argbytes, argbytes),
-      argbytes      = if_else(xref!='' & symbolop == 'high'    , map(xref_bytes, 2), argbytes, argbytes)
-    )
+      symbol_value = symbol_expr %>% purrr::map_int(~as.integer(eval(parse(text=.x), envir = symbol_values))),
+      symbol_bytes = map(symbol_value, w2b),
+      symbol_lo    = map(symbol_value, lo ),
+      symbol_hi    = map(symbol_value, hi ),
 
-  prg_df %<>% select(-xref_bytes, -xref_relative)
+      symbol_offset = symbol_value - addr - 2L,  # not sure where the offset sould be calculated from
+      symbol_offset = ifelse(symbol_offset < 0, 256L + symbol_offset, symbol_offset), # signed byte
+      symbol_offset = as.list(symbol_offset),
+
+      argbytes      = if_else(symbol_op == 'relative'     , symbol_offset, argbytes, argbytes),
+      argbytes      = if_else(grepl('absolute', symbol_op), symbol_bytes , argbytes, argbytes),
+      argbytes      = if_else(symbol_op == 'low'          , symbol_lo    , argbytes, argbytes),
+      argbytes      = if_else(symbol_op == 'high'         , symbol_hi    , argbytes, argbytes)
+    )
 
 
   #-----------------------------------------------------------------------------
@@ -92,7 +97,7 @@ process_xrefs <- function(prg_df) {
 #-----------------------------------------------------------------------------
 #' Pad out with zero bytes between address blocks
 #'
-#' @param prg_df main assembler data.frame after `process_xrefs()` has been run
+#' @param prg_df main assembler data.frame after `process_symbols()` has been run
 #'
 #' @return prg_df updated with zero padding rows between address blocks so that
 #'         every byte from start to finish is accounted for
@@ -144,7 +149,7 @@ process_zero_padding <- function(prg_df) {
 #' @export
 #-----------------------------------------------------------------------------
 extract_prg_bytes <- function(prg_df) {
-  as.raw(c(address_to_bytes(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
+  as.raw(c(w2b(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
 }
 
 

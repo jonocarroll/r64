@@ -4,7 +4,7 @@
 \name{asm_patterns}
 \alias{asm_patterns}
 \title{Regex patterns for parsing 6502 assembly}
-\format{An object of class \code{character} of length 23.}
+\format{An object of class \code{character} of length 22.}
 \usage{
 asm_patterns
 }

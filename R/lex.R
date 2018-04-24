@@ -17,8 +17,6 @@ asm_patterns <- c(
   rbyte_inst = '\\.rbyte',
   lbracket   = '\\(',
   rbracket   = '\\)',
-  langle     = '<',
-  rangle     = '>',
   text       = '".*?"',
   comma      = ",",
   colon      = ":",
@@ -26,6 +24,7 @@ asm_patterns <- c(
   comment    = '(;[^\n]*)',
   x          = '(x|X)',
   y          = '(y|Y)',
+  symbol     = '#?<?>?\\{.*?\\}',  # a symbol with evaluation
   symbol     = '[^\\s:,)]+'
 )
 

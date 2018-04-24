@@ -154,7 +154,7 @@ The `r64::compile()` function is just a wrapper which calls the following 4 func
     * Create a data.frame from `line_tokens`
     * This is the key data structure for the compilation process
     * The compilation process is just a matter of manipulating this data.frame and merging with information about the instructions
-3. `prg_df <- r64::process_xrefs(prg_df)`
+3. `prg_df <- r64::process_symbols(prg_df)`
     * Resolve labels to their actual addresses
     * Replace any defined variables with their values
 4. `prg_df <- r64::process_zero_padding(prg_df)`
