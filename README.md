@@ -43,7 +43,7 @@ Limitations
 ------------------------------------------------------------------------------
 
 This is the very definition of a *toy assembler*.  There is enough support for
-the things I want to do, but it is lacking a lot of niceties.
+writing simple code, but it is lacking a lot of niceties.
 
 * For most basic assembly code, the syntax is very similar to TASS64
 * Errors will be thrown for most syntax errors, but there are still corner cases
@@ -128,9 +128,12 @@ Compile the program and show the compiled program bytes
 ```r
 prg_df <- r64::compile(asm)
 r64::extract_prg_bytes(prg_df)
-#>  [1] 01 08 0c 08 0a 00 9e 20 32 30 38 30 00 00 00 00 00 00 00 00 00 00 00
-#> [24] 00 00 00 00 00 00 00 00 00 00 a9 93 20 d2 ff a2 00 bd 35 08 29 3f 9d
-#> [47] 00 04 e8 e0 0e d0 f3 60 c8 45 4c 4c 4f 20 23 52 53 54 41 54 53 21
+```
+
+```
+##  [1] 01 08 0c 08 0a 00 9e 20 32 30 38 30 00 00 00 00 00 00 00 00 00 00 00
+## [24] 00 00 00 00 00 00 00 00 00 00 a9 93 20 d2 ff a2 00 bd 35 08 29 3f 9d
+## [47] 00 04 e8 e0 0e d0 f3 60 c8 45 4c 4c 4f 20 23 52 53 54 41 54 53 21
 ```
 
 
@@ -138,17 +141,25 @@ Compare `r64` output to `TASS64` output
 ------------------------------------------------------------------------------
 
 TASS64 is a well known 6502 assembler.  Here i will use it to compile the same code and 
-compare the output. It should be identical. I'm using an [R6](https://cran.r-project.org/package=R6)
+compare the output. It should be identical. `r64::TASS` is a an [R6](https://cran.r-project.org/package=R6)
 wrapper around the command line executable to just make things a bit easier.
 
 
 ```r
 tass <- r64::TASS$new(asm = asm)$compile()
-#> Error messages:    None
-#> Warning messages:  None
+```
 
+```
+## Error messages:    None
+## Warning messages:  None
+```
+
+```r
 identical(r64::extract_prg_bytes(prg_df), tass$get_prg())
-#> [1] TRUE
+```
+
+```
+## [1] TRUE
 ```
 
 
