@@ -227,27 +227,38 @@ message4
 ```
 
 
-Compile the ASM into a PRG
+
+Compile ASM code to PRG
 ------------------------------------------------------------------------------
 
 ```{r}
-prg_df <- r64::compile(asm)
+library(r64)
+
+## Manual compilation steps if debugging
+# line_tokens <- r64::create_line_tokens(asm)
+# prg_df      <- r64::create_prg_df(line_tokens)
+# prg_df      <- r64::process_symbols(prg_df)
+# prg_df      <- r64::process_zero_padding(prg_df)
+
+# compile and save code
+prg_df       <- r64::compile(asm)
+prg_filename <- "../prg/ascii.prg"
+
+r64::save_prg(prg_df, prg_filename)
 ```
 
-```{r echo=FALSE, eval=FALSE}
-prg_df %>% 
-  select(addr, line, op, opmode)
-```
+See the `prg` directory in this package for ready-to-run PRGs of this code.
 
 
-Save the PRG and run it
+
+
+Run code in an emulator
 ------------------------------------------------------------------------------
 
 ```{r eval=FALSE}
-outfile <- tempfile()
-r64::save_prg(prg_df, outfile)
-system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", outfile), wait=FALSE)
+system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64 -VICIIfilter 0 -silent", prg_filename), wait=FALSE)
 ```
+
 
 ![c64 screenshot in vice](img/ascii.png)
 

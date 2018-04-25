@@ -23,6 +23,13 @@ knitr::opts_chunk$set(
 Write your c64 ASM code
 ------------------------------------------------------------------------------
 
+* The syntax is roughly modelled on that of TASS64, but only for the fundamentals i.e.
+    * `*` refers to current address location, and can be read from or written to
+    * All programs should start with a `*=....` line to set the starting address
+    * `.byte` values must be hexadecimal only, and single byte hexadecimal must **always**
+      include 2 characters.  i.e. `$0e` will work, but `$e` won't work.
+    * Similarly, for immediate values. i.e. `#$01` will work. `#$1` won't work.
+
 ```{r}
 library(r64)
 
@@ -55,6 +62,10 @@ message
 Compile in one step
 ------------------------------------------------------------------------------
 
+* If you're willing to trust the compiler, then use `r64::compile()` to convert
+  ASM into bytes.
+* Still have to extract the bytes from the `prg_df` data.frame to view and save.
+
 ```{r}
 prg_df <- r64::compile(asm)
 
@@ -65,6 +76,10 @@ r64::extract_prg_bytes(prg_df)
 
 Compile in multiple steps (for debugging purposes)
 ------------------------------------------------------------------------------
+
+* When debugging the output, you can manually run the compilation steps and
+  view the output at each stage.
+* `r64` isn't a complete or bug-free assembler by any means!
 
 ```{r}
 line_tokens <- r64::create_line_tokens(asm)
@@ -81,13 +96,18 @@ Save to file
 ------------------------------------------------------------------------------
 
 ```{r}
-prg_filename <- tempfile("my_awesome_c64_program", fileext = ".prg")
-save_prg(prg_df, prg_filename)
+prg_filename <- "../prg/helloworld.prg"
+
+r64::save_prg(prg_df, prg_filename)
 ```
 
 
 Compare the output with a more complete compiler (TASS64)
 ------------------------------------------------------------------------------
+
+* If you're not using any R-specific features, then for most simple cases you
+  can compile your ASM in TASS64 as well and compare the byte output. They 
+  should be identical.
 
 ```{r}
 tass <- r64::TASS$new(asm = asm)
@@ -99,11 +119,12 @@ identical(r64::extract_prg_bytes(prg_df), tass$get_prg())
 
 
 
-Run the program using an emulator
+Run code in an emulator
 ------------------------------------------------------------------------------
 
 ```{r eval=FALSE}
-system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64", prg_filename))
+system(paste("/usr/local/opt/vice/x64.app/Contents/MacOS/x64 -VICIIfilter 0 -silent", prg_filename), wait=FALSE)
 ```
+
 
 ![](img/helloworld.gif)

@@ -19,9 +19,11 @@ knitr::opts_chunk$set(echo=TRUE)
 Rationale
 ------------------------------------------------------------------------------
 
-* Who *doesn't* want a compiler for a *1 MHz* 8-bit computer?
-* Writing my own 6502 assembler in R will allow for preparing/calculating 
-  data in R and then incorporating directly into the assembly code.
+* Who *doesn't* want a compiler for a **1 MHz** 8-bit computer with 16 colours and a max resolution of 320x200?
+* A 6502 assembler in R will allow for preparing/calculating 
+  data in R and then incorporating directly into the assembly code. e.g. 
+    * creating character sets 
+    * computing animation paths
 
 
 Features
@@ -39,8 +41,10 @@ General features
 
 For integration with R
 
-* include an `R` string as text using the `.rtext` directive
-* include an `R` integer vector as bytes using the `.rbytes` directive
+* `.rtext` directive to include an `R` string as text data
+* `.rbyte` directive to include an `R` integer vector as bytes 
+* `{...}` to delimit code to be evaluated at run time to manipulate labels and variables e.g. `lda {border + 1}`
+
 
 Limitations
 ------------------------------------------------------------------------------
@@ -48,20 +52,26 @@ Limitations
 This is the very definition of a *toy assembler*.  There is enough support for
 the things I want to do, but it is lacking a lot of niceties.
 
-Things which are **NOT** included, but could be implemented when the need arises:
-
-* Direct computation on symbols
-    * e.g. `lda message+80`
-* Computation/manipulation of the program counter 
-    * e.g. `sta *-1`
-* Support for decimal and binary literals.
-    * e.g. `lda #127` or `lda #b01111111`
+* For most basic assembly code, the syntax is very similar to TASS64
+* Errors will be thrown for most syntax errors, but there are still corner cases
+  that are untested. It might just turn some things into code even if
+  it doesn't make sense.  e.g. a `jmp` to a location more than 128 bytes away.
+* `indirect indexed` and `indexed indirect` modes using symbolic addresses seems
+  to work, but need more tests.
+* No Support for decimal and binary literals. e.g. Currently can't do `lda #127` or `lda #b01111111`
+* All bytes must be in 2-character hexadecimal and preceded by a `$`.  I.e. `$01` is ok, but `$1` won't work.
+* All word values by in 4-character hexadecimal and preceded by a `$`.  I.e. `$0820` is ok, but `$820` won't work.
+* You may need to force zero page addressing modes with symbols/variables by explicitly noting that only the low byte should
+  be used. e.g.
+    * `BUFPNT = $A6`  is the pointer to the tape i/o buffer
+    * `lda <BUFPNT` should be used to force zero page addressing mode, otherwise `lda BUFPNT` would assume absolute addressing mode.
+    * The actual result would be the same, but zero page addressing takes fewer bytes and is faster than absolute.
 
 
 Installation
 ------------------------------------------------------------------------------
 
-`r64` depnds on a lot of tidyverse packages as well as the [minilexer](https://bitbucket.org/coolbutuseless/minilexer)
+`r64` depends on a lot of tidyverse packages as well as the [minilexer](https://bitbucket.org/coolbutuseless/minilexer)
 package (for splitting the c64 asm code into tokens).
 
 ```{r eval=FALSE}
@@ -70,6 +80,17 @@ devtools::install_bitbucket('coolbutuseless/r64')
 ```
 
 
+Vignettes
+------------------------------------------------------------------------------
+
+* `helloworld` - write text to the screen
+* `helloborder` - colour cycling in the border as fast as possible
+* `helloworld_details` - a look at the intermediate assembly outputs during compilation
+* `ascii` - Using R-specific `.rbyte` directive to put characters from an R variable into the assembly code
+* `custom_character_set` - Building a custom character set in R and passing it into the assemblly code with the `.rbyte` directive.
+* `symbol-arithmetic` - How to do arithmetic on the program counter and address labels
+
+The code for the vignettes is also available in the `prg/` directory of this repository.
 
 
 A simple 6502 program 
@@ -161,11 +182,11 @@ The `r64::compile()` function is just a wrapper which calls the following 4 func
     * If there are gaps between blocks of code, insert zero bytes
 
 An example of the final form of the `prg_df` data.frame is show below.  The actual contents of the c64 `prg` file
-is just the sequence of values in the `bytes` column. 
+is just the sequence of values in the `hexbytes` column. 
 
 ```{r}
 prg_df %>%
-  select(addr, label, xref, line, opcommand, op, ophex, nbytes, bytes, hexbytes) %>%
+  select(addr, label, line, opcommand, op, ophex, nbytes, hexbytes) %>%
   knitr::kable()
 ```
 

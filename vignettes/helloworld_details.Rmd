@@ -23,6 +23,16 @@ knitr::opts_chunk$set(
 ```
 
 
+Write your c64 ASM code
+------------------------------------------------------------------------------
+
+* The syntax is roughly modelled on that of TASS64, but only for the fundamentals i.e.
+    * `*` refers to current address location, and can be read from or written to
+    * All programs should start with a `*=....` line to set the starting address
+    * `.byte` values must be hexadecimal only, and single byte hexadecimal must **always**
+      include 2 characters.  i.e. `$0e` will work, but `$e` won't work.
+    * Similarly, for immediate values. i.e. `#$01` will work. `#$1` won't work.
+
 ```{r}
 library(dplyr)
 library(r64)
@@ -53,6 +63,20 @@ message
 r64 defines a set of tokens in the ASM file
 ------------------------------------------------------------------------------
 
+* `r64::asm_patterns` defines the set of patterns for lexing/tokenising an ASM file
+* Things to note:
+    * upper or lower-case opcodes are allowed, but not mixed-case
+    * hexadecimal bytes must always be written with 2 characters i.e `$01` not `$1`
+    * No decimal representation is supported, everything should be in hexadecimal
+    * A bare `*` is interpreted as the program counter (i.e. current address)
+* Custom R features
+    * `.rbyte` directive. similar to the standard `.byte`, but the bytes come from the
+      next token in the stream which must be a variable name which contains integers
+      in the range 0-255.
+    * `.rtext` directive. Similar to the stnadard `.text`, but the text comes from the 
+      next token in the stream which must be a variable name which contains a string.
+    * `{...}` represents text to be evaluated. Used for symbol arithmetic. e.g. `lda {message},1`
+
 ```{r}
 #-----------------------------------------------------------------------------
 #' Regex patterns for parsing 6502 assembly
@@ -71,8 +95,6 @@ asm_patterns <- c(
   rbyte_inst = '\\.rbyte',
   lbracket   = '\\(',
   rbracket   = '\\)',
-  langle     = '<',
-  rangle     = '>',
   text       = '".*?"',
   comma      = ",",
   colon      = ":",
@@ -80,7 +102,8 @@ asm_patterns <- c(
   comment    = '(;[^\n]*)',
   x          = '(x|X)',
   y          = '(y|Y)',
-  symbol     = '[^\\s:,]+'
+  symbol     = '#?<?>?\\{.*?\\}',  # a symbol with evaluation
+  symbol     = '[^\\s:,)]+'
 )
 ```
 
@@ -103,6 +126,12 @@ line_tokens
 The main `prg_df` datastructure is created from `line_tokens`
 ------------------------------------------------------------------------------
 
+* All the computation/passes necessary to turn the ASM into actual bytes for PRG file
+  take place as operations on this `prg_df` data.frame
+* There are lots of columns here keeping track of values, cross-references to symbols and
+  different representations of the values e.g. in both hexadecimal and decimal
+
+
 ```{r}
 prg_df <- r64::create_prg_df(line_tokens)
 ```
@@ -117,6 +146,12 @@ prg_df %>%
 Calculate addresses and replace any symbols with these values
 ------------------------------------------------------------------------------
 
+* symbols (such as `message`) may have their values defined by
+    * their address, i.e. position in the bytestream relative to the start of the file
+    * explicitly assigned a value e.g. `storage = $3000`
+* Since the actual instruction address might only be specified at the very start of the file (using `* = $0820` for example), 
+  then byte counting is used to figure out the address of all subsequent instructions.
+
 ```{r}
 prg_df <- r64::process_symbols(prg_df)
 ```
@@ -124,6 +159,7 @@ prg_df <- r64::process_symbols(prg_df)
 ```{r echo=FALSE}
 prg_df %>% 
   select(-argbytes, -hexbytes, -label_value, -op, -symbol_op, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
+  select(-symbol_lo, -symbol_hi, -symbol_offset, -row_symbol_values) %>%
   knitr::kable()
 ```
 
@@ -145,6 +181,7 @@ prg_df <- r64::process_zero_padding(prg_df)
 ```{r echo=FALSE}
 prg_df %>% 
   select(-argbytes, -hexbytes, -label_value, -op, -symbol_op, -nopbytes, -nargbytes, -opcommand, -init_addr) %>% 
+  select(-symbol_lo, -symbol_hi, -symbol_offset, -row_symbol_values) %>%
   knitr::kable()
 ```
 
@@ -152,7 +189,8 @@ prg_df %>%
 Extract the bytes from `prg_df`
 ------------------------------------------------------------------------------
 
-* `prg_df$bytes` is a list column
+* `prg_df$bytes` is a list column which represents all the instruction bytes which 
+  make up a PRG file.
 * Use `purrr::flatten()` to convert to an integer vector (and remove any NULL entries)
 
 ```{r}
@@ -182,7 +220,8 @@ as.raw(c(w2b(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
 Save the PRG
 ------------------------------------------------------------------------------
 
-* Just write the bytes directly to file with `writeBin()` - no other processing is needed.
+* Just write the bytes, with the loading address prefixed, 
+directly to file with `writeBin()` - no other processing is needed.
 
 
 

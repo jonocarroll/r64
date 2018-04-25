@@ -38,7 +38,7 @@ TASS <- R6::R6Class(
     # Can specify either an asm_filename, or pass in asm directly, which
     # will be saved to a temp file for compilation
     #-------------------------------------------------------------------------
-    initialize = function(asm_filename=NULL, asm=NULL, prg_filename=NULL, tass_bin = "~/bin/64tass", x64_bin = '/usr/local/opt/vice/x64.app/Contents/MacOS/x64') {
+    initialize = function(asm_filename=NULL, asm=NULL, prg_filename=NULL, tass_bin = "~/bin/64tass", x64_bin = '/usr/local/opt/vice/x64.app/Contents/MacOS/x64 -VICIIfilter 0  -silent') {
 
       if (!is.null(asm)) {
         self$asm_filename <- tempfile(fileext=".asm", pattern = "r64-")
