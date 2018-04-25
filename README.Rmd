@@ -80,6 +80,14 @@ devtools::install_bitbucket('coolbutuseless/r64')
 ```
 
 
+Documentation
+------------------------------------------------------------------------------
+
+The documentation for the package is available online at [coolbutuseless.bitbucket.io](https://coolbutuseless.bitbucket.io/package/r64) 
+(thanks to [pkgdown](https://github.com/r-lib/pkgdown))
+
+
+
 Vignettes
 ------------------------------------------------------------------------------
 
@@ -92,6 +100,20 @@ Vignettes
 
 The code for the vignettes is also available in the `prg/` directory of this repository.
 
+
+
+Running c64 programs
+------------------------------------------------------------------------------
+
+* Online emulators (both of which will let you drag-and-drop)
+    * [c64js.com](http://www.c64js.com/)
+    * [virtualconsoles.com](https://virtualconsoles.com/online-emulators/c64/)
+
+* Native
+    * [VICE](http://vice-emu.sourceforge.net/)
+
+    
+    
 
 A simple 6502 program 
 ------------------------------------------------------------------------------
