@@ -8,7 +8,7 @@
 `r64` - a c64/6502 assembler in R
 ==============================================================================
 
-Full documentation is available here: [[coolbutuseless.bitbucket.io/package/r64](https://coolbutuseless.bitbucket.io/package/r64)]
+Full documentation is available here: [coolbutuseless.bitbucket.io/package/r64](https://coolbutuseless.bitbucket.io/package/r64)
 
 
 Rationale
