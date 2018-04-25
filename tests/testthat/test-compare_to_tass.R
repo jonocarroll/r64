@@ -1,5 +1,9 @@
 context("compare_to_tass")
 
+#-----------------------------------------------------------------------------
+# The ASM files in the vignettes/asm directory are basic programs which
+# should compile to the same bytes in both `r64` and TASS64
+#-----------------------------------------------------------------------------
 test_that("compare to TASS", {
   asm_files <- list.files("asm/", pattern = "asm$", full.names = TRUE)
 

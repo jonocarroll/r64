@@ -7,7 +7,7 @@
 get_opcode_info(tokens)
 }
 \arguments{
-\item{tokens}{A sequence of ASM tokens. This *must* start with a valid opcode, and
+\item{tokens}{A sequence of ASM tokens. This must start with a valid opcode, and
 not be a `symbol` or an assembler directive like `.text`}
 }
 \value{

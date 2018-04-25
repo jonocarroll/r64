@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo=TRUE)
 
 ```{r echo=FALSE}
 #-----------------------------------------------------------------------------
-#' Create a character set that wipes from side to side
+# Create a character set that wipes from side to side
 #-----------------------------------------------------------------------------
 create_sideswipe_charset <- function() {
   charset <- as.integer(c(0x00, 0x01, 0x01, 0x03, 0x03, 0x07, 0x07, 0x0f,
@@ -401,7 +401,7 @@ screen4   .rbyte screen_state4
 Compile ASM code to PRG
 ------------------------------------------------------------------------------
 
-```{r}
+```{r eval=FALSE}
 library(r64)
 
 ## Manual compilation steps if debugging
@@ -439,7 +439,7 @@ Appendix: Create custom character sets
 
 ```{r eval=FALSE}
 #-----------------------------------------------------------------------------
-#' Create a character set that wipes from side to side
+# Create a character set that wipes from side to side
 #-----------------------------------------------------------------------------
 create_sideswipe_charset <- function() {
   charset <- as.integer(c(0x00, 0x01, 0x01, 0x03, 0x03, 0x07, 0x07, 0x0f,

@@ -68,7 +68,7 @@ process_symbols <- function(prg_df) {
 
   #-----------------------------------------------------------------------------
   # All symbols are resolved by evaluating their expression, using
-  # 'symbol_values' as the environment
+  # symbol_values as the environment
   #-----------------------------------------------------------------------------
 
   prg_df %<>%

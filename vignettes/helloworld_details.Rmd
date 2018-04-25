@@ -79,7 +79,7 @@ r64 defines a set of tokens in the ASM file
 
 ```{r}
 #-----------------------------------------------------------------------------
-#' Regex patterns for parsing 6502 assembly
+# Regex patterns for parsing 6502 assembly
 #-----------------------------------------------------------------------------
 asm_patterns <- c(
   newline    = '\n',

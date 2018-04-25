@@ -95,7 +95,7 @@ r64::extract_prg_bytes(prg_df)
 Save to file 
 ------------------------------------------------------------------------------
 
-```{r}
+```{r eval=FALSE}
 prg_filename <- "../prg/helloworld.prg"
 
 r64::save_prg(prg_df, prg_filename)
@@ -109,7 +109,7 @@ Compare the output with a more complete compiler (TASS64)
   can compile your ASM in TASS64 as well and compare the byte output. They 
   should be identical.
 
-```{r}
+```{r eval=FALSE}
 tass <- r64::TASS$new(asm = asm)
 tass$compile()
 tass$get_prg()

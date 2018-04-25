@@ -69,7 +69,7 @@ crap
 Compile ASM code to PRG
 ------------------------------------------------------------------------------
 
-```{r}
+```{r eval=FALSE}
 library(r64)
 
 ## Manual compilation steps if debugging

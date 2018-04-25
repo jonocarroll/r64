@@ -50,7 +50,7 @@ Limitations
 ------------------------------------------------------------------------------
 
 This is the very definition of a *toy assembler*.  There is enough support for
-the things I want to do, but it is lacking a lot of niceties.
+writing simple code, but it is lacking a lot of niceties.
 
 * For most basic assembly code, the syntax is very similar to TASS64
 * Errors will be thrown for most syntax errors, but there are still corner cases
@@ -139,7 +139,7 @@ Compare `r64` output to `TASS64` output
 ------------------------------------------------------------------------------
 
 TASS64 is a well known 6502 assembler.  Here i will use it to compile the same code and 
-compare the output. It should be identical. I'm using an [R6](https://cran.r-project.org/package=R6)
+compare the output. It should be identical. `r64::TASS` is a an [R6](https://cran.r-project.org/package=R6)
 wrapper around the command line executable to just make things a bit easier.
 
 ```{r}

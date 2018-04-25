@@ -7,13 +7,7 @@
 create_prg_df_row(tokens)
 }
 \arguments{
-\item{tokens}{A sequence of ASM tokens for one row of the ASM file. This may be a row containing
-(1) only a label
-(2) a PC(*) assignment
-(3) a variable assignment
-(4) an assembler directive e.g. '.text', '.byte'
-(5) an instruction
-(6) any of the above preceded by a label}
+\item{tokens}{A sequence of ASM tokens for one row of the ASM file.}
 }
 \value{
 single row data.frame containing information about the row

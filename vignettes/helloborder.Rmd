@@ -44,7 +44,7 @@ loop
 Compile ASM code to PRG
 ------------------------------------------------------------------------------
 
-```{r}
+```{r eval=FALSE}
 library(r64)
 
 ## Manual compilation steps if debugging
@@ -70,7 +70,7 @@ Compare the output with a more complete compiler (TASS64)
 * Since we haven't used an R-specific features, this should compile to the 
   identical bytes using the TASS64 compiler.
   
-```{r}
+```{r eval=FALSE}
 tass <- r64::TASS$new(asm = asm)
 tass$compile()
 tass$get_prg()

@@ -7,7 +7,7 @@ globalVariables(c('opcodes', 'opbyte', 'init_addr', 'label',
 #-----------------------------------------------------------------------------
 #' Determine the opcode, address mode etc for a sequence of tokens representing a single instruction
 #'
-#' @param tokens A sequence of ASM tokens. This *must* start with a valid opcode, and
+#' @param tokens A sequence of ASM tokens. This must start with a valid opcode, and
 #'               not be a `symbol` or an assembler directive like `.text`
 #'
 #' @return single row data.frame containing information about the instruction
@@ -98,9 +98,6 @@ get_opcode_info <- function(tokens) {
   # are available for this op.
   #
   # It gets trickier if the op references a symbol.
-  #
-  # NOTE: Not all symbol cases are handled. e.g.
-  #    - Not handled symbol use:  indirect, indirect x, indirect y
   #---------------------------------------------------------------------------
   if (length(tokens) == 1) {
     opmode    <- 'implied'
@@ -217,13 +214,7 @@ get_opcode_info <- function(tokens) {
 #-----------------------------------------------------------------------------
 #' Determine the opcode, address mode etc for a sequence of tokens representing a single instruction
 #'
-#' @param tokens A sequence of ASM tokens for one row of the ASM file. This may be a row containing
-#'               (1) only a label
-#'               (2) a PC(*) assignment
-#'               (3) a variable assignment
-#'               (4) an assembler directive e.g. '.text', '.byte'
-#'               (5) an instruction
-#'               (6) any of the above preceded by a label
+#' @param tokens A sequence of ASM tokens for one row of the ASM file.
 #'
 #' @return single row data.frame containing information about the row
 #'
@@ -309,3 +300,4 @@ create_prg_df <- function(line_tokens) {
 
   prg_df
 }
+

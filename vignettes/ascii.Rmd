@@ -45,21 +45,21 @@ that is taken directly from an R variable containing a string.
 
 ```{r, eval=TRUE, echo=FALSE}
 #-----------------------------------------------------------------------------
-#' Create very small ASCII art suitable for a c64 screen
-#'
-#' c64 screens display 25x40 characters (1000 characters in total). This function
-#' uses the `magick` package to load and resize an image and then uses R
-#' to convert that into the ascii characters specified in the \code{alphabet} argument.
-#'
-#' @param alphabet defines the characters which will appear in the image. Must be specified in
-#'                 order of visual density for the output to look like input
-#' @param image_filename full path to image. will be loaded by \code{magick::image_read}
-#' @param invert boolean. whether to reverse the alphabet. default FALSE
-#'
-#' @return character matrix of size 25x40
-#'
-#' @import magick
-#' @export
+# Create very small ASCII art suitable for a c64 screen
+#
+# c64 screens display 25x40 characters (1000 characters in total). This function
+# uses the `magick` package to load and resize an image and then uses R
+# to convert that into the ascii characters specified in the \code{alphabet} argument.
+#
+# @param alphabet defines the characters which will appear in the image. Must be specified in
+#                 order of visual density for the output to look like input
+# @param image_filename full path to image. will be loaded by \code{magick::image_read}
+# @param invert boolean. whether to reverse the alphabet. default FALSE
+#
+# @return character matrix of size 25x40
+#
+# @import magick
+# @export
 #-----------------------------------------------------------------------------
 create_ascii_art <- function(
   alphabet       =  ' .:-=+*#%@',
@@ -231,7 +231,7 @@ message4
 Compile ASM code to PRG
 ------------------------------------------------------------------------------
 
-```{r}
+```{r eval=FALSE}
 library(r64)
 
 ## Manual compilation steps if debugging
@@ -270,21 +270,21 @@ Appendix: `create_ascii_art()`
 
 ```{r, eval=FALSE, echo=TRUE}
 #-----------------------------------------------------------------------------
-#' Create very small ASCII art suitable for a c64 screen
-#'
-#' c64 screens display 25x40 characters (1000 characters in total). This function
-#' uses the `magick` package to load and resize an image and then uses R
-#' to convert that into the ascii characters specified in the \code{alphabet} argument.
-#'
-#' @param alphabet defines the characters which will appear in the image. Must be specified in
-#'                 order of visual density for the output to look like input
-#' @param image_filename full path to image. will be loaded by \code{magick::image_read}
-#' @param invert boolean. whether to reverse the alphabet. default FALSE
-#'
-#' @return character matrix of size 25x40
-#'
-#' @import magick
-#' @export
+# Create very small ASCII art suitable for a c64 screen
+#
+# c64 screens display 25x40 characters (1000 characters in total). This function
+# uses the `magick` package to load and resize an image and then uses R
+# to convert that into the ascii characters specified in the \code{alphabet} argument.
+#
+# @param alphabet defines the characters which will appear in the image. Must be specified in
+#                 order of visual density for the output to look like input
+# @param image_filename full path to image. will be loaded by \code{magick::image_read}
+# @param invert boolean. whether to reverse the alphabet. default FALSE
+#
+# @return character matrix of size 25x40
+#
+# @import magick
+# @export
 #-----------------------------------------------------------------------------
 create_ascii_art <- function(
   alphabet       =  ' .:-=+*#%@',
