@@ -223,7 +223,7 @@ get_opcode_info <- function(tokens) {
 create_prg_df_row <- function(tokens) {
   types <- names(tokens)
 
-  res <- data_frame(line = paste(tokens, collapse=" "), label_value=NA_integer_)
+  res <- data_frame(line = paste(tokens, collapse=" "), label=NA_character_, label_value=NA_integer_)
 
   if (identical(types, 'symbol')) {
     res$label <- tokens[1]
