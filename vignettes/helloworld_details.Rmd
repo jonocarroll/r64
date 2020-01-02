@@ -4,7 +4,7 @@ author: "mikefc@coolbutuseless.com"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Hello World - compilation details}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -195,7 +195,8 @@ Extract the bytes from `prg_df`
 
 ```{r}
 prg_df$bytes %>%
-  purrr::flatten_int() %>%
+  purrr::flatten() %>%
+  as.integer() %>% 
   as.raw()
 ```
 
@@ -213,7 +214,7 @@ Add the loading address to get the complete PRG
 
 ```{r}
 # The following is equivalent to:  r64::extract_prg_bytes(prg_df)
-as.raw(c(w2b(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
+as.raw(c(w2b(prg_df$addr[1]), as.integer(purrr::flatten(prg_df$bytes))))
 ```
 
 

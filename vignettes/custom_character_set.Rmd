@@ -1,10 +1,10 @@
 ---
-title: "Hello World"
+title: "Custom character set"
 author: "mikefc@coolbutuseless.com"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{Custom character set}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -158,7 +158,7 @@ process_zero_padding <- function(prg_df) {
 #' @export
 #-----------------------------------------------------------------------------
 extract_prg_bytes <- function(prg_df) {
-  as.raw(c(w2b(prg_df$addr[1]), purrr::flatten_int(prg_df$bytes)))
+  as.raw(c(w2b(prg_df$addr[1]), as.integer(purrr::flatten(prg_df$bytes))))
 }
 
 

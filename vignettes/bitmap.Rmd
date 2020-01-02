@@ -1,10 +1,10 @@
 ---
-title: "ASCII art on the c64 via R"
+title: "ASCII art on the c64 via R II"
 author: "mikefc@coolbutuseless.com"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{ASCII art on the c64 via R II}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
