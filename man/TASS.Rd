@@ -34,6 +34,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-new"></a>}}
+\if{latex}{\out{\hypertarget{method-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$new(
@@ -48,6 +49,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compile"></a>}}
+\if{latex}{\out{\hypertarget{method-compile}{}}}
 \subsection{Method \code{compile()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$compile()}\if{html}{\out{</div>}}
@@ -56,6 +58,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-run"></a>}}
+\if{latex}{\out{\hypertarget{method-run}{}}}
 \subsection{Method \code{run()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$run(wait = FALSE, intern = FALSE)}\if{html}{\out{</div>}}
@@ -64,6 +67,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-dump_asm"></a>}}
+\if{latex}{\out{\hypertarget{method-dump_asm}{}}}
 \subsection{Method \code{dump_asm()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$dump_asm()}\if{html}{\out{</div>}}
@@ -72,6 +76,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_asm"></a>}}
+\if{latex}{\out{\hypertarget{method-get_asm}{}}}
 \subsection{Method \code{get_asm()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$get_asm()}\if{html}{\out{</div>}}
@@ -80,6 +85,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-get_prg"></a>}}
+\if{latex}{\out{\hypertarget{method-get_prg}{}}}
 \subsection{Method \code{get_prg()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$get_prg()}\if{html}{\out{</div>}}
@@ -88,6 +94,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-compile_and_run"></a>}}
+\if{latex}{\out{\hypertarget{method-compile_and_run}{}}}
 \subsection{Method \code{compile_and_run()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TASS$compile_and_run(wait = FALSE, intern = FALSE)}\if{html}{\out{</div>}}
@@ -96,6 +103,7 @@ tass$compile_and_run()
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

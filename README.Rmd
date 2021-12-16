@@ -1,4 +1,6 @@
-
+---
+output: github_document
+---
 
 ```{r setup, include = FALSE}
 suppressPackageStartupMessages({
@@ -73,11 +75,11 @@ writing simple code, but it is lacking a lot of niceties.
 Installation
 ------------------------------------------------------------------------------
 
-`r64` depends on a lot of tidyverse packages as well as the [minilexer](https://github.com/coolbutuseless/minilexer)
+`r64` depends on a lot of tidyverse packages as well as the [flexo](https://github.com/coolbutuseless/flexo)
 package (for splitting the c64 asm code into tokens).
 
 ```{r eval=FALSE}
-devtools::install_github('coolbutuseless/minilexer') # for lexing the 6502 assembly into tokens
+devtools::install_github('coolbutuseless/flexo') # for lexing the 6502 assembly into tokens
 devtools::install_github('coolbutuseless/r64')
 ```
 

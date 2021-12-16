@@ -4,7 +4,9 @@
 \name{opcodes}
 \alias{opcodes}
 \title{Reference list of opcode information}
-\format{An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 217 rows and 15 columns.}
+\format{
+An object of class \code{tbl_df} (inherits from \code{tbl}, \code{data.frame}) with 217 rows and 15 columns.
+}
 \source{
 \url{http://www.oxyron.de/html/opcodes02.html}
 }

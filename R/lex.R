@@ -39,14 +39,14 @@ asm_patterns <- c(
 #'         Rows with just comments or whitespace are discarded
 #'
 #' @importFrom dplyr "%>%"
-#' @importFrom minilexer lex
+#' @importFrom flexo lex
 #' @importFrom purrr map discard
 #' @export
 #-----------------------------------------------------------------------------
 create_line_tokens <- function(asm) {
   lines <- strsplit(asm, "\n")[[1]]
   line_tokens <- lines %>%
-    purrr::map(~minilexer::lex(.x, asm_patterns)) %>%
+    purrr::map(~flexo::lex(.x, asm_patterns)) %>%
     purrr::map(~purrr::discard(.x, names(.x) %in% c('whitespace', 'comma', 'comment', 'colon'))) %>%
     purrr::discard(~length(.x) == 0)
   line_tokens
