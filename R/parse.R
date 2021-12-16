@@ -12,7 +12,7 @@ globalVariables(c('opcodes', 'opbyte', 'init_addr', 'label',
 #'
 #' @return single row data.frame containing information about the instruction
 #'
-#' @importFrom dplyr filter data_frame
+#' @importFrom dplyr filter tibble
 #' @importFrom rlang "%||%"
 #-----------------------------------------------------------------------------
 get_opcode_info <- function(tokens) {
@@ -34,7 +34,7 @@ get_opcode_info <- function(tokens) {
   # Put in an 'unknown' opmode for now and catch this error later
   #---------------------------------------------------------------------------
   if (!identical(types[1], 'opcode')) {
-    return(data_frame(opmode = 'unknown', nopbytes = NA_integer_, nargbytes = NA_integer_, opcommand=command, argbytes=argbytes))
+    return(tibble(opmode = 'unknown', nopbytes = NA_integer_, nargbytes = NA_integer_, opcommand=command, argbytes=argbytes))
   }
 
   #---------------------------------------------------------------------------
@@ -195,7 +195,7 @@ get_opcode_info <- function(tokens) {
   #---------------------------------------------------------------------------
   # Construct a full table of opcode info for this set of tokens
   #---------------------------------------------------------------------------
-  data_frame(
+  tibble(
     op          = tokens[1],
     opbyte      = opcode_info$dec,
     ophex       = as.character(as.hexmode(opcode_info$dec)),
@@ -223,7 +223,7 @@ get_opcode_info <- function(tokens) {
 create_prg_df_row <- function(tokens) {
   types <- names(tokens)
 
-  res <- data_frame(line = paste(tokens, collapse=" "), label=NA_character_, label_value=NA_integer_)
+  res <- tibble(line = paste(tokens, collapse=" "), label=NA_character_, label_value=NA_integer_)
 
   if (identical(types, 'symbol')) {
     res$label <- tokens[1]

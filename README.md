@@ -136,14 +136,6 @@ message
 
 ``` r
 prg_df <- r64::compile(asm)
-```
-
-    ## Warning: `data_frame()` is deprecated as of tibble 1.1.0.
-    ## Please use `tibble()` instead.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_warnings()` to see where this warning was generated.
-
-``` r
 r64::extract_prg_bytes(prg_df)
 ```
 

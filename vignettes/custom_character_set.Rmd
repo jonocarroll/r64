@@ -50,7 +50,7 @@ create_spiral_charset <- function() {
   # Define what (r)ight, (d)own, (l)eft, (u)p convert to in terms of 
   # position deltas in the x, y directions
   #---------------------------------------------------------------------------
-  vec <- data_frame(
+  vec <- tibble(
     direction = c('r', 'd', 'l', 'u'),
     x         = c( 1 ,  0 , -1 ,  0 ),
     y         = c( 0,  -1 ,  0 ,  1 )
@@ -59,7 +59,7 @@ create_spiral_charset <- function() {
   #---------------------------------------------------------------------------
   # Basic spiral pattern
   #---------------------------------------------------------------------------
-  spiral <- data_frame(
+  spiral <- tibble(
     direction = rep(c('r', 'd', 'l', 'u'), times=4),
     length    = rep(1:8, each=2)
   ) %>% left_join(vec, by='direction')
@@ -467,7 +467,7 @@ create_spiral_charset <- function() {
   # Define what (r)ight, (d)own, (l)eft, (u)p convert to in terms of 
   # position deltas in the x, y directions
   #---------------------------------------------------------------------------
-  vec <- data_frame(
+  vec <- tibble(
     direction = c('r', 'd', 'l', 'u'),
     x         = c( 1 ,  0 , -1 ,  0 ),
     y         = c( 0,  -1 ,  0 ,  1 )
@@ -476,7 +476,7 @@ create_spiral_charset <- function() {
   #---------------------------------------------------------------------------
   # Basic spiral pattern
   #---------------------------------------------------------------------------
-  spiral <- data_frame(
+  spiral <- tibble(
     direction = rep(c('r', 'd', 'l', 'u'), times=4),
     length    = rep(1:8, each=2)
   ) %>% left_join(vec, by='direction')
